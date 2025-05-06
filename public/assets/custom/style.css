@@ -1,0 +1,196 @@
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #e3e3e3;
+}
+
+@font-face {
+    font-family: "Poppins";
+    src: url("https://db.onlinewebfonts.com/t/2f86dc938a55788d3416b876b43a116a.eot");
+    src: url("https://db.onlinewebfonts.com/t/2f86dc938a55788d3416b876b43a116a.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/2f86dc938a55788d3416b876b43a116a.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/2f86dc938a55788d3416b876b43a116a.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/2f86dc938a55788d3416b876b43a116a.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/2f86dc938a55788d3416b876b43a116a.svg#Poppins")format("svg");
+}
+
+@font-face {
+    font-family: "Montserrat";
+    src: url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.eot");
+    src: url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.eot?#iefix")format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.woff2")format("woff2"),
+    url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.woff")format("woff"),
+    url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.ttf")format("truetype"),
+    url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.svg#Montserrat")format("svg");
+}
+
+h1,h2,h3,h4,h5,h6,p,a,span,td{
+    font-family: Poppins !important;
+}
+
+.btn-success, .btn-info, .btn-primary {
+    background: #002222 !important;
+    border: none;
+}
+
+/* accent */
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    background-color: #ffffff !important;
+    border: #6C757D 1px solid;
+}
+
+#mobileSidebar .active {
+    background-color: #002222 !important;
+}
+
+.navbar {
+    background-color: #F69639;
+}
+
+.active>.page-link, .page-link.active {
+    z-index: 3;
+    color: #101010;;
+    /* background-color: #002222;
+    border-color: #002222; */
+    border-color: #002222;
+    background-color: #002222;
+}
+
+.page-link {
+    color: #002222;
+}
+
+/* end accent */
+
+#mobileSidebar {
+    z-index: 1;
+}
+
+.sidebar {
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    /* background: linear-gradient(#0A5A5A, #000a0a); */
+    background: #ffffff;
+    color: #101010;
+    transition: all 0.3s;
+    padding-top: 30px;
+    overflow-x: scroll;
+}
+
+.sidebar img {
+    width: 100% !important;
+}
+
+.sidebar .active {
+    color: #ffffff;
+}
+
+.sidebar a {
+    color: #101010;
+    text-decoration: none;
+    padding: 15px 20px;
+    display: block;
+    font-size: 16px;
+    transition: background 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #002222;
+    color: #ffffff;
+}
+
+.sidebar a i {
+    margin-right: 10px;
+}
+
+.sidebar .logo {
+    text-align: center;
+    /* font-size: 24px;
+    font-weight: bold; */
+    margin-bottom: 30px;
+}
+
+/* .sidebar .logo img {
+    width: 100%;
+} */
+
+.content {
+    margin-left: 240px;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+
+.navbar .navbar-brand {
+    color: #e3e3e3;
+}
+
+.navbar .navbar-toggler {
+    border-color: #e3e3e3;
+}
+
+.navbar .navbar-toggler-icon {
+    background-color: #e3e3e3;
+}
+
+.navbar-nav .nav-link {
+    color: #e3e3e3;
+}
+
+.card .card-body {
+    padding: 25px;
+}
+
+.card-title {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* .table>:not(caption)>*>* {
+    border: none !important;
+} */
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 250px;
+        position: fixed;
+        left: -250px;
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .content {
+        margin-left: 0;
+    }
+
+    .navbar .navbar-toggler {
+        border-color: #e3e3e3;
+    }
+
+    .navbar .navbar-toggler-icon {
+        background-color: #e3e3e3;
+    }
+
+    .sidebar-mobile a {
+        color: #e3e3e3;
+        text-decoration: none;
+        padding: 15px;
+        display: block;
+    }
+
+    .sidebar-mobile.active {
+        display: block;
+    }
+
+    .content {
+        margin-left: 0;
+    }
+}

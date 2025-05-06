@@ -1,0 +1,16 @@
+Get New Token
+env('OMADAC_SERVER').'/openapi/authorize/token?grant_type=client_credentials'
+[
+	'omadacId' => env('OMADAC_ID'),
+	'client_id' => env('CLIENT_ID'),
+	'client_secret' => env('CLIENT_SECRET'),
+]
+
+Customers
+env('OMADAC_SERVER').'/openapi/v1/msp/'.env('OMADAC_ID').'/customers?page=1&pageSize=1000'
+
+Sites
+env('OMADAC_SERVER').'/openapi/v1/msp/'.env('OMADAC_ID').'/sites?page=1&pageSize=1000'
+
+Audit Logs
+env('OMADAC_SERVER').'/openapi/v1/msp/'.env('OMADAC_ID').'/audit-logs?page=1&pageSize=1000'
