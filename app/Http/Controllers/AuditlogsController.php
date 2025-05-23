@@ -6,6 +6,7 @@ use App\Models\{Logs, Auditlogs};
 use App\Http\Requests\StoreAuditlogsRequest;
 use App\Http\Requests\UpdateAuditlogsRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 
 class AuditlogsController extends Controller {
@@ -14,6 +15,8 @@ class AuditlogsController extends Controller {
      */
     public function index()
     {
+        Artisan::call('sync-from-http');
+
         return view('auditlogs.auditlogs', [
             'auditlogs' => Auditlogs::where('isTrash', '0')->paginate(15)
         ]);

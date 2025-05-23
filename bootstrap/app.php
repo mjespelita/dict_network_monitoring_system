@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->validateCsrfTokens(
+            // $except = ['/add-user']
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

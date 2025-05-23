@@ -43,21 +43,21 @@
         <a href='{{ url('clients/'.$item->siteId) }}' class='{{ request()->is('clients/*', 'trash-clients', 'create-clients', 'show-clients/*', 'edit-clients/*', 'delete-clients/*', 'clients-search*') ? 'active' : '' }}'>
             <i class="fas fa-users"></i> Clients
         </a>
-        <a href='{{ url('insights/'.$item->siteId) }}' class='{{ request()->is('insights/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
+        {{-- <a href='{{ url('insights/'.$item->siteId) }}' class='{{ request()->is('insights/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
             <i class="fas fa-chart-line"></i> Insights
-        </a>
+        </a> --}}
         <a href='{{ url('logs/'.$item->siteId) }}' class='{{ request()->is('logs/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
             <i class="fas fa-clipboard-list"></i> Logs
         </a>
-        <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
+        {{-- <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
             <i class="fas fa-file-alt"></i> Reports
-        </a>
+        </a> --}}
     </div>
 
     <div class='card'>
         <div class='card-body'>
 
-            <div class='row'>
+            {{-- <div class='row'>
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
                     <div class='row'>
                         <div class='col-4'>
@@ -89,7 +89,7 @@
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
                     <form action='{{ url('/sites-filter') }}' method='get'>
                         <div class='input-group'>
-                            <input type='date' class='form-control' id='from' name='from' required> 
+                            <input type='date' class='form-control' id='from' name='from' required>
                             <b class='pt-2'>- to -</b>
                             <input type='date' class='form-control' id='to' name='to' required>
                             <div class='input-group-append'>
@@ -110,9 +110,14 @@
                         </div>
                     </form>
                 </div>
-            </div>
+            </div> --}}
 
             <div class='table-responsive mt-5'>
+                <style>
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                    </style>
                 <table class="table table-striped table-bordered">
                     <thead>
                         <tr>
@@ -120,73 +125,109 @@
                             <th>Time</th>
                         </tr>
                     </thead>
-                
-                    <tbody>
-                        <!-- Sample Data Row 1 -->
+                    <tbody id="logNotificationBody">
+                        <!-- Logs will be inserted here -->
                         <tr>
-                            <td>System update completed successfully</td>
-                            <td>Mar 15, 2025 05:25:30 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 2 -->
-                        <tr>
-                            <td>User login: john_doe</td>
-                            <td>Mar 15, 2025 05:26:12 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 3 -->
-                        <tr>
-                            <td>Device 06-5C-BE-A8-4B-85 disconnected</td>
-                            <td>Mar 15, 2025 05:27:45 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 4 -->
-                        <tr>
-                            <td>New user registration: alice_smith</td>
-                            <td>Mar 15, 2025 05:28:34 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 5 -->
-                        <tr>
-                            <td>Network error detected on device 06-38-4D-83-A3-F8</td>
-                            <td>Mar 15, 2025 05:30:01 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 6 -->
-                        <tr>
-                            <td>Password reset requested for admin</td>
-                            <td>Mar 15, 2025 05:31:20 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 7 -->
-                        <tr>
-                            <td>New firmware version 1.2.0 available for update</td>
-                            <td>Mar 15, 2025 05:32:56 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 8 -->
-                        <tr>
-                            <td>User logout: jane_doe</td>
-                            <td>Mar 15, 2025 05:34:10 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 9 -->
-                        <tr>
-                            <td>System maintenance scheduled for Mar 16, 2025 02:00 AM</td>
-                            <td>Mar 15, 2025 05:35:40 AM</td>
-                        </tr>
-                
-                        <!-- Sample Data Row 10 -->
-                        <tr>
-                            <td>New connection established: 192.168.0.15</td>
-                            <td>Mar 15, 2025 05:36:55 AM</td>
+                            <td colspan="12" style="text-align: center; padding: 50px 0;">
+                                <div style="display: inline-block; width: 3rem; height: 3rem; border: 0.4rem solid #ccc; border-top-color: #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <div style="margin-top: 1rem; color: #888;">Loading site logs...</div>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
+
+                <!-- Pagination Controls -->
+                <nav>
+                    <ul class="pagination justify-content-center" id="logPagination"></ul>
+                </nav>
             </div>
 
         </div>
     </div>
 
     <a href='{{ route('sites.index') }}' class='btn btn-primary'>Back to List</a>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const rowsPerPage = 10;
+            let currentPage = 1;
+            let logsData = [];
+
+            function renderTablePage(page) {
+                const container = $('#logNotificationBody');
+                container.empty();
+
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const pageData = logsData.slice(start, end);
+
+                if (pageData.length === 0) {
+                    container.html(`<tr><td colspan="2" class="text-center text-muted">No log data.</td></tr>`);
+                    return;
+                }
+
+                pageData.forEach(log => {
+                    const row = `
+                        <tr>
+                            <td>${log.shortMsg}</td>
+                            <td>${new Date().toLocaleString()}</td>
+                        </tr>
+                    `;
+                    container.append(row);
+                });
+            }
+
+            function renderPagination(totalItems) {
+                const pageCount = Math.ceil(totalItems / rowsPerPage);
+                const pagination = $('#logPagination');
+                pagination.empty();
+
+                for (let i = 1; i <= pageCount; i++) {
+                    const li = $(`<li class="page-item ${i === currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="#">${i}</a>
+                                  </li>`);
+                    li.click(function (e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        renderTablePage(currentPage);
+                        renderPagination(logsData.length);
+                    });
+                    pagination.append(li);
+                }
+            }
+
+            function loadLogNotifications(siteId) {
+                $.ajax({
+                    url: `/log-notification-api/${siteId}`,
+                    method: 'GET',
+                    success: function (res) {
+                        if (res.errorCode === 0 && res.result.logNotifications) {
+                            logsData = res.result.logNotifications;
+                            currentPage = 1;
+                            renderTablePage(currentPage);
+                            renderPagination(logsData.length);
+                        } else {
+                            $.get('/generate-new-api-token', function (res) {
+                                window.location.reload();
+                            });
+                            $('#logNotificationBody').html(`<tr><td colspan="2" class="text-danger text-center">Failed to load logs.</td></tr>`);
+                        }
+                    },
+                    error: function () {
+                        $('#logNotificationBody').html(`<tr><td colspan="2" class="text-danger text-center">Request failed.</td></tr>`);
+                    }
+                });
+            }
+
+            // Initial load
+            $.get('/traffic-api-access-token', function () {
+                const siteId = window.location.pathname.split('/').filter(Boolean).pop();
+                loadLogNotifications(siteId);
+            }).fail(function () {
+                console.error("Failed to get access token.");
+            });
+        });
+        </script>
+
 @endsection

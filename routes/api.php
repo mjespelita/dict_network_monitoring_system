@@ -21,3 +21,7 @@ Route::get('/customers', function (Request $request) {
 Route::get('/sites', function (Request $request) {
     return response()->json(Sites::all());
 })->middleware('auth:sanctum');
+
+Route::post('/add-user', function (Request $request) {
+    return response()->json($request);
+});

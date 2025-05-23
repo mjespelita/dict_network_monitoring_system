@@ -6,6 +6,7 @@ use App\Models\{Logs, Sites};
 use App\Http\Requests\StoreSitesRequest;
 use App\Http\Requests\UpdateSitesRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Smark\Smark\JSON;
@@ -16,6 +17,9 @@ class SitesController extends Controller {
      */
     public function index()
     {
+
+        Artisan::call('sync-from-http');
+
         return view('sites.sites', [
             'sites' => Sites::where('isTrash', '0')->paginate(10)
         ]);

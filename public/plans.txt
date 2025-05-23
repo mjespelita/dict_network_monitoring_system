@@ -1,0 +1,54 @@
+Percentage Availability
+
+Date Range
+
+daysCount = March 12 - April 11 (example range)
+
+noData = Count the offline days or no data
+
+total = noData - daysCount (based on the first month of range for example if March of 2025 is 31 days then the value of this is 31)
+
+total2  = total / daysCount (based on the first month of range for example if March of 2025 is 31 days then the value of this is 31)
+
+total3 = total2 x 100
+
+final = round off total3
+
+return final;
+
+--------------------------------------------------------------
+
+List of offline days based on range
+
+--------------------------------------------------------------
+
+Upload and Download total based on range
+
+--------------------------------------------------------------
+
+Unique users (Reports - Clients) and number of users - each site (Insights - Known Clients) - with range
+
+Needed Export
+
+Acceptance Date
+- July 23, 12, 10, 11, 2024
+
+CHECKED - done - ok - Location
+CHECKED - done - ok - Access Point Name and Model
+CHECKED - done - ok - Date of Download
+CHECKED - done - ok - Percent Uptime Per Location --
+CHECKED - done - ok - Average Bandwidth Speed --
+
+CHECKED - ok - Location and Date Downloaded
+CHECKED - ok - Percent Uptime per Location --
+CHECKED - ok - Total number of Data usage --
+ok - Total numbers of Data usage
+
+ok - Total numbers of unique Users per month
+ok - Total numbers of Users per month
+
+January 1, 1970 - 0
+
+32 - bit
+January 19, 2038 - 2147483647
+December 4, 292,277,026,596 - 9223372036854775807

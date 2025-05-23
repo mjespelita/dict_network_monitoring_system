@@ -89,79 +89,60 @@
             </div> --}}
 
             <div class="p-5">
-                <div class="row">
-
-                    <div class="col-lg-4 col md-4 col-sm-12">
-                        <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
-                        <h5>Percentage Availability</h5>
-                        <div id="percentageAvailability">
-                            <div style="
-                                width: 100%;
-                                height: 200px;
-                                background-color: #e0e0e0;
-                                border-radius: 6px;
-                                animation: pulse 1.5s infinite;">
-                            </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col md-4 col-sm-12">
-                        <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
-                        <div id="uploadAndDownloadAverageSpeedDiv" class="table-responsive">
-                            <div style="
-                                width: 100%;
-                                height: 200px;
-                                background-color: #e0e0e0;
-                                border-radius: 6px;
-                                animation: pulse 1.5s infinite;">
-                            </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col md-4 col-sm-12">
-                        <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
-                        <div id="uploadDownloadTotalDiv" class="table-responsive">
-                            <div style="
-                                width: 100%;
-                                height: 200px;
-                                background-color: #e0e0e0;
-                                border-radius: 6px;
-                                animation: pulse 1.5s infinite;">
-                            </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-5">
                 <h5>Traffic (MBytes)</h5>
                 <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                 <div id="lineChartStatisticsTraffic"></div>
+            </div>
+
+            <div class="p-5">
+                <div class="row">
+                    <!-- Offline Days Card -->
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                        <div class="card shadow-sm rounded-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-calendar-x me-2 text-danger"></i>
+                                    List of Offline Days
+                                </h5>
+                                <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                                <ul class="list-offlines mb-0">
+                                    <li>Offline days will show here...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload/Download Card -->
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                        <div class="card shadow-sm rounded-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-arrow-down-up me-2 text-primary"></i>
+                                    Total Upload and Download
+                                </h5>
+                                <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                                <ul class="list-total-sizes mb-0">
+                                    {{-- total sizes --}}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-12">
+                        <div class="card shadow-sm rounded-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">
+                                    <i class="bi bi-arrow-down-up me-2 text-primary"></i>
+                                    Percentage Availability
+                                </h5>
+                                <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                                <ul class="list-percentage-availability mb-0">
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="p-5">
@@ -171,44 +152,14 @@
                         <h5>Top Device CPU Usage</h5>
                         <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                         <div id="cpuUsageContainer" class="table-responsive">
-                            <div style="
-                                width: 100%;
-                                height: 200px;
-                                background-color: #e0e0e0;
-                                border-radius: 6px;
-                                animation: pulse 1.5s infinite;">
-                            </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
+                            {{-- data here --}}
                         </div>
                     </div>
                     <div class="col-lg-6 col md-6 col-sm-12">
                         <h5>Top Device Memory Usage</h5>
                         <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                         <div id="memoryUsageContainer" class="table-responsive">
-                            <div style="
-                                width: 100%;
-                                height: 200px;
-                                background-color: #e0e0e0;
-                                border-radius: 6px;
-                                animation: pulse 1.5s infinite;">
-                            </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
+                            <!-- Memory usage table will be injected here -->
                         </div>
                     </div>
                 </div>
@@ -298,6 +249,139 @@
 
                         const traffic = res.result.switchTrafficActivities;
 
+                        // No Data Range -----------------------------------------------------------------------------------
+
+                        $('.list-offlines').html("");
+
+                        // Adjust start and end date range for inclusive comparison
+                        const adjustedStart = new Date(startUnix * 1000);
+                        adjustedStart.setDate(adjustedStart.getDate() + 1); // subtract 1 day
+
+                        console.log(adjustedStart)
+
+                        const adjustedEnd = new Date(endUnix * 1000);
+                        adjustedEnd.setDate(adjustedEnd.getDate() - 1); // add 1 day
+
+                        console.log(adjustedEnd)
+
+                        const dataByDate = {};
+
+                        // Step 1: Group traffic by date
+                        traffic.forEach(item => {
+                            const date = new Date(item.time * 1000);
+
+                            // Filter only within the adjusted date range
+                            if (date >= adjustedStart && date <= adjustedEnd) {
+                                const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
+
+                                if (!dataByDate[dateStr]) {
+                                    dataByDate[dateStr] = [];
+                                }
+
+                                dataByDate[dateStr].push(item);
+                            }
+                        });
+
+                        // Step 2: Identify fully missing data days
+                        const missingDates = [];
+
+                        Object.keys(dataByDate).forEach(dateStr => {
+                            const items = dataByDate[dateStr];
+                            const hasValidData = items.some(item => item.txData != null && item.dxData != null);
+
+                            if (!hasValidData) {
+                                missingDates.push(dateStr);
+                            }
+                        });
+
+                        // Step 3: Sort and group missing dates into ranges
+                        missingDates.sort();
+
+                        const offlineRanges = [];
+                        let rangeStart = null;
+                        let rangeEnd = null;
+
+                        for (let i = 0; i < missingDates.length; i++) {
+                            const currentDate = new Date(missingDates[i]);
+                            const previousDate = i > 0 ? new Date(missingDates[i - 1]) : null;
+
+                            if (
+                                !rangeStart ||
+                                (previousDate && (currentDate - previousDate !== 86400000)) // not consecutive
+                            ) {
+                                if (rangeStart) {
+                                    offlineRanges.push([rangeStart, rangeEnd]);
+                                }
+                                rangeStart = currentDate;
+                            }
+
+                            rangeEnd = currentDate;
+                        }
+
+                        // Push final range
+                        if (rangeStart) {
+                            offlineRanges.push([rangeStart, rangeEnd]);
+                        }
+
+                        // Step 4: Print ranges
+                        if (offlineRanges.length > 0) {
+                            const offlineList = document.querySelector('.list-offlines');
+
+                            offlineRanges.forEach(([start, end]) => {
+                                const options = { year: 'numeric', month: 'short', day: '2-digit' };
+                                const startStr = start.toLocaleDateString('en-US', options);
+
+                                const adjustedEnd = new Date(end);
+                                adjustedEnd.setDate(adjustedEnd.getDate() + 1); // Add 1 day
+                                const endStr = adjustedEnd.toLocaleDateString('en-US', options);
+
+                                const li = document.createElement('li');
+                                li.textContent = startStr === endStr
+                                    ? `📅 ${startStr}`
+                                    : `📅 ${startStr} - ${endStr}`;
+                                offlineList.appendChild(li);
+                            });
+                        }
+
+                        // End No Data Range -----------------------------------------------------------------------------------
+
+                        // Sum up the download and upload ----------------------------------------------------------------------
+
+                        function formatDataSize(mbValue) {
+                            const bytes = mbValue * 1024 * 1024; // Convert MB to Bytes for uniform scaling
+                            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                            let unitIndex = 0;
+                            let size = bytes;
+
+                            while (size >= 1024 && unitIndex < units.length - 1) {
+                                size /= 1024;
+                                unitIndex++;
+                            }
+
+                            return `${size.toFixed(2)} ${units[unitIndex]}`;
+                        }
+
+                        let totalTx = 0;
+                        let totalDx = 0;
+
+                        traffic.forEach(item => {
+                            if ('txData' in item && 'dxData' in item) {
+                                totalTx += Number(item.txData); // already in MB
+                                totalDx += Number(item.dxData);
+                            }
+                        });
+
+                        const uploadFormatted = formatDataSize(totalTx);
+                        const downloadFormatted = formatDataSize(totalDx);
+
+                        const listEl = document.querySelector(".list-total-sizes");
+                        listEl.innerHTML = `
+                            <li><strong>📤 Upload/Transmitted:</strong> <b class="text-success">${uploadFormatted}</b></li>
+                            <li><strong>📥 Download/Received:</strong> <b class="text-success">${downloadFormatted}</b></li>
+                        `;
+
+                        // End Sum up the download and upload ----------------------------------------------------------------------
+
                         const aggregated = {};
 
                         // Aggregate traffic by hour
@@ -357,83 +441,59 @@
                         loadCpuUsageData(startUnix, endUnix, siteId);
                         loadMemoryUsageData(startUnix, endUnix, siteId);
 
-                        // other apis
+                        // Percentage Availability -------------------------------------------------------------------------------
 
-                        // bandwidth speed
+                        const startDate = new Date(startUnix * 1000);
+                        const endDate = new Date(endUnix * 1000);
 
-                        getBandwidthUsageApi(startUnix, endUnix, siteId);
-                        getUploadDownloadTotal(startUnix, endUnix, siteId);
-                        getPercentageAvailability(startUnix, endUnix, siteId);
+                        // Extract all unique dates with data
+                        const dateMap = {}; // { "YYYY-MM-DD": true }
+
+                        traffic.forEach(item => {
+                            const date = new Date(item.time * 1000);
+                            const dateKey = date.toISOString().split('T')[0];
+
+                            if (item.txData != null || item.dxData != null) {
+                                dateMap[dateKey] = true;
+                            }
+                        });
+
+                        // Generate list of all dates in the range
+                        const allDates = [];
+                        let current = new Date(startDate);
+                        while (current <= endDate) {
+                            const dateKey = current.toISOString().split('T')[0];
+                            allDates.push(dateKey);
+                            current.setDate(current.getDate() + 1);
+                        }
+
+                        // Count no-data days
+                        const noData = allDates.filter(date => !dateMap[date]).length;
+
+                        // Calculate stats
+                        const daysInFirstMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
+                        const totalDaysWithData = daysInFirstMonth - noData;
+                        const availabilityPercent = Math.round((totalDaysWithData / daysInFirstMonth) * 100);
+
+                        // Debug logs (optional)
+                        console.log("🗓️ Days in first month:", daysInFirstMonth);
+                        console.log("❌ Offline/No-data days:", noData);
+                        console.log("✅ Final percentage (rounded):", availabilityPercent + "%");
+
+                        // Inject into DOM
+                        const list = document.querySelector('.list-percentage-availability');
+                        list.innerHTML = `
+                            <li><strong>📊 Available Days:</strong> ${totalDaysWithData} / ${daysInFirstMonth}</li>
+                            <li><strong>❌ Offline Days:</strong> ${noData}</li>
+                            <li><strong>✅ Availability:</strong> <span class="text-success fw-bold">${availabilityPercent}%</span></li>
+                        `;
+
+                        // End Percentage Availability ---------------------------------------------------------------------------
                     },
                     error: function (xhr) {
                         console.error("Request failed:", xhr.statusText, xhr);
                     }
                 });
-            }
-
-            function getBandwidthUsageApi(start, end, siteId) {
-                const url = `/get-bandwidth-usage-api/${start}/${end}/${siteId}`;
-                $.get(url, function (res) {
-
-                    $('#uploadAndDownloadAverageSpeedDiv').html(`
-                        <div class="card bg-primary mb-3">
-                            <div class="card-header">
-                                <i class="fas fa-tachometer-alt"></i> Average Bandwidth Speed
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">
-                                    <i class="fas fa-upload"></i> <strong>Upload:</strong> ${res.uploadAvgSpeed}
-                                </p>
-                                <p class="card-text">
-                                    <i class="fas fa-download"></i> <strong>Download:</strong> ${res.downloadAvgSpeed}
-                                </p>
-                            </div>
-                        </div>
-                    `);
-
-                }).fail(err => console.log(err));
-            }
-
-            function getUploadDownloadTotal(start, end, siteId) {
-                const url = `/get-total-upload-download-api/${start}/${end}/${siteId}`;
-                $.get(url, function (res) {
-
-                    $('#uploadDownloadTotalDiv').html(`
-                        <div class="card bg-primary mb-3">
-                            <div class="card-header">
-                                <i class="fas fa-tachometer-alt"></i> Total Download And Upload
-                            </div>
-                            <div class="card-body">
-                                <p class="card-text">
-                                    <i class="fas fa-upload"></i> <strong>Upload:</strong> ${res.uploadFormatted}
-                                </p>
-                                <p class="card-text">
-                                    <i class="fas fa-download"></i> <strong>Download:</strong> ${res.downloadFormatted}
-                                </p>
-                            </div>
-                        </div>
-                    `);
-
-                }).fail(err => console.log(err));
-            }
-
-            function getPercentageAvailability(start, end, siteId) {
-                const url = `/get-percentage-availability-api/${start}/${end}/${siteId}`;
-                $.get(url, function (res) {
-                    let color = 'gray';
-
-                    if (res >= 95) {
-                        color = 'green'; // High availability
-                    } else if (res >= 75) {
-                        color = 'orange'; // Medium availability
-                    } else {
-                        color = 'red'; // Low availability
-                    }
-
-                    $('#percentageAvailability').html(`
-                        <h1 class="fw-bold" style="font-size: 100px; color: ${color};">${res}%</h1>
-                    `);
-                }).fail(err => console.log(err));
             }
 
             function loadCpuUsageData(start, end, siteId) {
@@ -543,18 +603,22 @@
                         day: '2-digit'
                     });
 
-                    const start = Math.floor(new Date(startDate).getTime() / 1000).toString();
-                    const end = Math.floor(new Date(endDate).getTime() / 1000).toString();
+                    // Clone the dates for adjustment
+                    let adjustedStart = new Date(startDate);
+                    let adjustedEnd = new Date(endDate);
+
+                    // Adjust by -1 day and +1 day
+                    adjustedStart.setDate(adjustedStart.getDate() - 1);
+                    adjustedEnd.setDate(adjustedEnd.getDate());
+
+                    // Convert adjusted dates to Unix timestamps
+                    const start = Math.floor(adjustedStart.getTime() / 1000);
+                    const end = Math.floor(adjustedEnd.getTime() / 1000);
 
                     // You can pass both to your function if needed
                     loadTrafficData(token, start, end, originalStart, originalEnd);
 
-                    console.log(start);
-
-                    $('.date-range').html(`
-                        <b>${originalStart} - ${originalEnd}</b>
-                    `)
-
+                    $(".date-range").text(`${originalStart} - ${originalEnd}`);
                 });
 
             }).fail(function () {

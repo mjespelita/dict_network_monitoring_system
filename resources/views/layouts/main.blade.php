@@ -31,7 +31,7 @@
                 </div>
             </div>
             <a href='{{ url('dashboard') }}' class='{{ request()->is('dashboard', 'admin-dashboard') ? 'active' : '' }}'><i class='fas fa-tachometer-alt'></i> Dashboard</a>
-            <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'><i class='fas fa-users'></i> Customers</a>
+            {{-- <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'><i class='fas fa-users'></i> Customers</a> --}}
             <a href='{{ url('sites') }}' class='{{ request()->is('sites', 'trash-sites', 'create-sites', 'show-sites/*', 'edit-sites/*', 'delete-sites/*', 'sites-search*') ? 'active' : '' }}'><i class='fas fa-house'></i> Sites</a>
             {{-- <a href='#' class="cloud-based-systems-menu-toggle-button py-3" style="border-top: 1px solid #dcdcdc;border-bottom: 1px solid #dcdcdc;"><i class='fas fa-cloud'></i> Cloud-Based Systems</a>
             <div class="cloud-based-systems-menu-dropdown" style="display: none">
@@ -95,7 +95,7 @@
                     $('.on-premise-systems-menu-dropdown').slideToggle()
                 })
             })
-            
+
             const polling = new PollingManager({
                 url: "https://jsonplaceholder.typicode.com/todos/2", // API to fetch data
                 delay: 5000, // Poll every 5 seconds
@@ -111,7 +111,7 @@
             });
 
             // Start polling
-            polling.start();
+            // polling.start();
 
         </script>
     </body>

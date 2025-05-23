@@ -7,11 +7,176 @@
             <h1>All Sites</h1>
         </div>
         <div class='col-lg-6 col-md-6 col-sm-12' style='text-align: right;'>
-            {{-- <a href='{{ url('trash-sites') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Sites::where('isTrash', '1')->count() }}</span></button></a>
-            <a href='{{ route('sites.create') }}'><button class='btn btn-success'><i class='fas fa-plus'></i> Add Sites</button></a> --}}
+            {{-- {{-- <a href='{{ url('trash-sites') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Sites::where('isTrash', '1')->count() }}</span></button></a> --}}
+            <button class='btn btn-success' data-bs-toggle="modal" data-bs-target="#exampleModal"><i class='fas fa-file-pdf' ></i> Export</button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Export Report</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="text-start mb-3">
+                                <small class="text-info"><i>Note: Please fill out the necessary form fields below to proceed with exporting the report.</i></small>
+                            </div>
+                            <form action="{{ url('/export-general-data-into-pdf') }}" method="GET" class="row g-3 mb-4">
+                                <h4 class="text-start">Site Selection</h4>
+                                <div class="col-md-12">
+                                    <label for="startDate" class="form-label text-start w-100">Select A Site</label>
+                                    <select name="site" id="" class="form-control" required>
+                                            <option value="all">All Sites</option>
+                                        @forelse (App\Models\Sites::all() as $item)
+                                            <option value="{{ $item->siteId }}">{{ $item->name }}</option>
+                                        @empty
+                                            <option value="" disabled>No sites available...</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                                <hr>
+                                <h4 class="text-start">Date Range</h4>
+                                <div class="col-md-5">
+                                    <label for="startDate" class="form-label text-start w-100">Start Date</label>
+                                    <input type="date" name="startDate" id="startDate" class="form-control" required>
+                                    <div class="mt-2 text-muted text-start" id="readableStartDate"></div>
+                                </div>
+
+                                <div class="col-md-5">
+                                    <label for="endDate" class="form-label text-start w-100">End Date</label>
+                                    <input type="date" name="endDate" id="endDate" class="form-control" required>
+                                    <div class="mt-2 text-muted text-start" id="readableEndDate"></div>
+                                </div>
+
+
+                                <hr>
+                                <h4 class="text-start">Additional Information</h4>
+                                <!-- Additional Inputs -->
+                                <div class="col-md-12">
+                                    <label for="project" class="form-label text-start w-100">Project</label>
+                                    <textarea name="project" class="form-control" rows="3" required>SUPPLY, DELIVERY, INSTALLATION, AND MAINTENANCE OF MANAGED INTERNET SERVICES FOR THE PROJECT WI-FI IN NORTHERN SAMAR (WINS)</textarea>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="supplier" class="form-label text-start w-100">Supplier</label>
+                                    <input type="text" name="supplier" class="form-control" value="LIBRIFY IT SOLUTIONS" required>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="acceptanceDate" class="form-label text-start w-100">Acceptance Date</label>
+                                    <input type="date" name="acceptanceDate" id="acceptanceDate" class="form-control" value="2024-07-23" required>
+                                    <!-- Human-readable date display -->
+                                    <div class="mt-2 text-muted text-start" id="readableDate"></div>
+                                </div>
+                                <hr>
+                                <h4 class="text-start">Signatories</h4>
+                                <div id="peopleContainer" class="row g-3"></div>
+
+                                <button type="button" class="btn btn-sm btn-secondary mt-3" onclick="addPerson()">+ Add Person</button>
+                                @csrf
+                                <div class="col-md-2 align-self-end">
+                                    <button type="submit" class="btn btn-primary">Export</button>
+                                </div>
+
+                                <script>
+                                    function updateReadableDate(inputId, outputId) {
+                                        const input = document.getElementById(inputId);
+                                        const output = document.getElementById(outputId);
+
+                                        function formatAndDisplay(dateStr) {
+                                            if (!dateStr) {
+                                                output.textContent = '';
+                                                return;
+                                            }
+                                            const date = new Date(dateStr);
+                                            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                                            output.textContent = date.toLocaleDateString(undefined, options);
+                                        }
+
+                                        // Initial load
+                                        formatAndDisplay(input.value);
+
+                                        // On input change
+                                        input.addEventListener('input', () => formatAndDisplay(input.value));
+                                    }
+
+                                    updateReadableDate('startDate', 'readableStartDate');
+                                    updateReadableDate('endDate', 'readableEndDate');
+                                    updateReadableDate('acceptanceDate', 'readableDate'); // for the previous one
+
+                                    // people
+
+                                    const defaultPeople = [
+                                        {
+                                            purpose: 'Prepared By',
+                                            name: 'MEL LAURENCE TUBALLAS',
+                                            designation: 'INSTALLER / PROJECT FOCAL'
+                                        },
+                                        {
+                                            purpose: 'Verified by',
+                                            name: 'ENGR. CARL ANTHONY C. CATUBAO',
+                                            designation: 'FWFA Team Lead'
+                                        },
+                                        {
+                                            purpose: 'Approved by',
+                                            name: 'ENGR. GUALBERTO R. GUALBERTO, JR.',
+                                            designation: 'FWFA Focal'
+                                        }
+                                    ];
+
+                                    const peopleContainer = document.getElementById('peopleContainer');
+
+                                    let personIndex = 0; // Keep track of the index
+
+                                    function createPersonRow(purpose = '', name = '', designation = '') {
+                                        const row = document.createElement('div');
+                                        row.className = 'row g-2 align-items-end mb-2';
+
+                                        // Use the current personIndex for all input names
+                                        row.innerHTML = `
+                                            <div class="col-md-3">
+                                                <label class="form-label text-start">Purpose</label>
+                                                <input type="text" name="people[${personIndex}][purpose]" class="form-control" value="${purpose}" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label text-start">Name</label>
+                                                <input type="text" name="people[${personIndex}][name]" class="form-control" value="${name}" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label text-start">Designation</label>
+                                                <input type="text" name="people[${personIndex}][designation]" class="form-control" value="${designation}" required>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.row').remove()">×</button>
+                                            </div>
+                                        `;
+
+                                        personIndex++; // Increment index for next row
+                                        peopleContainer.appendChild(row);
+                                    }
+
+                                    // Load defaults
+                                    defaultPeople.forEach(p => createPersonRow(p.purpose, p.name, p.designation));
+
+                                    // Expose to global scope so it works with button
+                                    window.addPerson = () => createPersonRow();
+
+                                </script>
+
+
+                            </form>
+                        </div>
+                        {{-- <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Save changes</button>
+                        </div> --}}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    
+
     <div class='card'>
         <div class='card-body'>
             <div class='row'>
@@ -46,7 +211,7 @@
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
                     <form action='{{ url('/sites-filter') }}' method='get'>
                         <div class='input-group'>
-                            <input type='date' class='form-control' id='from' name='from' required> 
+                            <input type='date' class='form-control' id='from' name='from' required>
                             <b class='pt-2'>- to -</b>
                             <input type='date' class='form-control' id='to' name='to' required>
                             <div class='input-group-append'>
@@ -76,7 +241,10 @@
                             <th scope='col'>
                             <input type='checkbox' name='' id='' class='checkAll'>
                             </th>
-                            <th>Name</th><th>Customer</th><th>Region</th><th>Timezone</th><th>Scenario</th>
+                            <th>Name</th>
+                            <th>Region</th>
+                            <th>Timezone</th>
+                            <th>Scenario</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -88,7 +256,10 @@
                                     <input type='checkbox' name='' id='' class='check' data-id='{{ $item->id }}'>
                                 </th>
                                 <td>
-                                    <a href="{{ route('sites.show', $item->siteId) }}" class="nav-link text-primary fw-bold">{{ $item->name }}</a></td><td>{{ $item->customerName }}</td><td>{{ $item->region }}</td><td>{{ $item->timezone }}</td><td>{{ $item->scenario }}</td>
+                                    <a href="{{ route('sites.show', $item->siteId) }}" class="nav-link text-primary fw-bold">{{ $item->name }}</a></td>
+                                    <td>{{ $item->region }}</td>
+                                    <td>{{ $item->timezone }}</td>
+                                    <td>{{ $item->scenario }}</td>
                                 <td>
                                     <a href='{{ route('sites.show', $item->siteId) }}'><i class='fas fa-eye text-success'></i></a>
                                     {{-- <a href='{{ route('sites.edit', $item->id) }}'><i class='fas fa-edit text-info'></i></a>

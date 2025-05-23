@@ -43,21 +43,21 @@
         <a href='{{ url('clients/'.$item->siteId) }}' class='{{ request()->is('clients/*', 'trash-clients', 'create-clients', 'show-clients/*', 'edit-clients/*', 'delete-clients/*', 'clients-search*') ? 'active' : '' }}'>
             <i class="fas fa-users"></i> Clients
         </a>
-        <a href='{{ url('insights/'.$item->siteId) }}' class='{{ request()->is('insights/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
+        {{-- <a href='{{ url('insights/'.$item->siteId) }}' class='{{ request()->is('insights/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
             <i class="fas fa-chart-line"></i> Insights
-        </a>
+        </a> --}}
         <a href='{{ url('logs/'.$item->siteId) }}' class='{{ request()->is('logs/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
             <i class="fas fa-clipboard-list"></i> Logs
         </a>
-        <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
+        {{-- <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
             <i class="fas fa-file-alt"></i> Reports
-        </a>
+        </a> --}}
     </div>
 
     <div class='card'>
         <div class='card-body'>
 
-            <div class="row">
+            {{-- <div class="row">
                 <div class="col-sm-12 col-md-6 col-lg-6">
                     <button type='button' style="font-size: 12px" class='p-1 btn btn-outline-secondary'>ALL</button>
                     <button type='button' style="font-size: 12px" class='p-1 btn btn-outline-secondary'>WIRELESS</button>
@@ -66,7 +66,7 @@
                 <div class="col-sm-12 col-md-6 col-lg-6">
                     <form action='{{ url('/customers-filter') }}' method='get'>
                         <div class='input-group'>
-                            <input type='date' class='form-control' id='from' name='from' required> 
+                            <input type='date' class='form-control' id='from' name='from' required>
                             <b class='pt-2'>- to -</b>
                             <input type='date' class='form-control' id='to' name='to' required>
                             <div class='input-group-append'>
@@ -76,114 +76,186 @@
                         @csrf
                     </form>
                 </div>
+            </div> --}}
+
+            <div>
+                <div class="row" id="clientStatSummary">
+                    <div class="loadingPlaceholder" style="width: 100%; text-align: center; padding: 50px 0;">
+                        <div style="display: inline-block; width: 3rem; height: 3rem; border: 0.4rem solid #ccc; border-top-color: #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <div style="margin-top: 1rem; color: #888;">Loading client statistics...</div>
+                    </div>
+                </div>
             </div>
 
-            <div class='table-responsive mt-5'>
-                <table class="table table-striped table-bordered">
+            <!-- Inline spinner animation style -->
+            <style>
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            </style>
+
+            <div class='table-responsive mt-2'>
+                <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th></th>
-                            <th>Device MAC Address</th>
-                            <th>IP Address</th>
+                            <th>MAC Address</th>
+                            <th>Device Name</th>
+                            <th>Device Type</th>
+                            <th>Connected Device Type</th>
+                            <th>Switch Name</th>
+                            <th>Port</th>
+                            <th>Standard Port</th>
+                            <th>Network Name</th>
+                            <th>Uptime (s)</th>
+                            <th>Traffic Down</th>
+                            <th>Traffic Up</th>
                             <th>Status</th>
-                            <th>Network SSID</th>
-                            <th>Access Point/Port</th>
-                            <th>Download Speed</th>
-                            <th>Total Download</th>
-                            <th>Total Upload</th>
-                            <th>Connection Uptime</th>
                         </tr>
                     </thead>
-                
-                    <tbody>
+                    <tbody id="clientTableBody">
                         <tr>
-                            <th scope="row">
-                                <img src="{{ url('/assets/phone.jpg') }}" alt="" width="80px">
-                            </th>
-                            <td>06-5C-BE-A8-4B-85</td>
-                            <td>192.168.0.12</td>
-                            <td>
-                                <span class="text-success">AUTHORIZED</span>
+                            <td colspan="12" style="text-align: center; padding: 50px 0;">
+                                <div style="display: inline-block; width: 3rem; height: 3rem; border: 0.4rem solid #ccc; border-top-color: #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <div style="margin-top: 1rem; color: #888;">Loading client data...</div>
                             </td>
-                            <td>DICT Freewifi4all</td>
-                            <td>7C-F1-7E-F6-7C-3C</td>
-                            <td>16.88 KB/s</td>
-                            <td>182.56 MB</td>
-                            <td>17.90 MB</td>
-                            <td>49m 34s</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <img src="{{ url('/assets/laptop.jpg') }}" alt="" width="80px">
-                            </th>
-                            <td>06-5C-BE-A8-4B-86</td>
-                            <td>192.168.0.13</td>
-                            <td>
-                                <span class="text-danger">DISCONNECTED</span>
-                            </td>
-                            <td>DICT Freewifi4all</td>
-                            <td>7C-F1-7E-F6-7C-3D</td>
-                            <td>12.34 KB/s</td>
-                            <td>150.00 MB</td>
-                            <td>8.56 MB</td>
-                            <td>1h 12m 45s</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <img src="{{ url('/assets/phone.jpg') }}" alt="" width="80px">
-                            </th>
-                            <td>06-5C-BE-A8-4B-87</td>
-                            <td>192.168.0.14</td>
-                            <td>
-                                <span class="text-success">AUTHORIZED</span>
-                            </td>
-                            <td>DICT Freewifi4all</td>
-                            <td>7C-F1-7E-F6-7C-3E</td>
-                            <td>20.56 KB/s</td>
-                            <td>200.23 MB</td>
-                            <td>18.75 MB</td>
-                            <td>2h 5m 10s</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <img src="{{ url('/assets/phone.jpg') }}" alt="" width="80px">
-                            </th>
-                            <td>06-5C-BE-A8-4B-88</td>
-                            <td>192.168.0.15</td>
-                            <td>
-                                <span class="text-success">AUTHORIZED</span>
-                            </td>
-                            <td>DICT Freewifi4all</td>
-                            <td>7C-F1-7E-F6-7C-3F</td>
-                            <td>14.22 KB/s</td>
-                            <td>175.34 MB</td>
-                            <td>10.30 MB</td>
-                            <td>3h 15m 30s</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <img src="{{ url('/assets/laptop.jpg') }}" alt="" width="80px">
-                            </th>
-                            <td>06-5C-BE-A8-4B-89</td>
-                            <td>192.168.0.16</td>
-                            <td>
-                                <span class="text-danger">DISCONNECTED</span>
-                            </td>
-                            <td>DICT Freewifi4all</td>
-                            <td>7C-F1-7E-F6-7C-40</td>
-                            <td>8.10 KB/s</td>
-                            <td>125.67 MB</td>
-                            <td>5.45 MB</td>
-                            <td>45m 22s</td>
                         </tr>
                     </tbody>
                 </table>
-                
-                
+
+            </div>
+
+            <!-- Modal -->
+            <div class="modal fade" id="clientDetailModal" tabindex="-1" aria-labelledby="clientDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="clientDetailModalLabel">Client Detail</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="clientDetailBody">
+                        <div class="spinner-border"></div> Loading...
+                    </div>
+                </div>
+                </div>
             </div>
 
         </div>
     </div>
 
     <a href='{{ route('sites.index') }}' class='btn btn-primary'>Back to List</a>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function loadClientData(siteId) {
+                $.ajax({
+                    url: `/clients-api/${siteId}`,
+                    method: 'GET',
+                    success: function (res) {
+                        const container = $('#clientTableBody');
+                        container.empty();
+
+                        const statContainer = $('#clientStatSummary');
+                        statContainer.empty();
+
+                        console.log(res)
+
+                        if (res.errorCode === 0) {
+                            const data = res.result.data;
+                            if (data.length > 0) {
+                                data.forEach(client => {
+                                    const row = `
+                                        <tr>
+                                            <td>
+                                                <b class="text-primary" style="cursor:pointer" data-mac="${client.mac}" class="client-mac-link">${client.mac || '-'}</b>
+                                            </td>
+                                            <td>${client.name || '-'}</td>
+                                            <td>${client.deviceType || '-'}</td>
+                                            <td>${client.connectDevType || '-'}</td>
+                                            <td>${client.switchName || '-'}</td>
+                                            <td>${client.port ?? '-'}</td>
+                                            <td>${client.standardPort || '-'}</td>
+                                            <td>${client.networkName || '-'}</td>
+                                            <td>${client.uptime ?? '-'}</td>
+                                            <td>${client.trafficDown ? (client.trafficDown / 1_000_000).toFixed(2) + ' MB' : '-'}</td>
+                                            <td>${client.trafficUp ? (client.trafficUp / 1_000_000).toFixed(2) + ' MB' : '-'}</td>
+                                            <td>${client.active ? '<span class="text-success">Active</span>' : '<span class="text-muted">Inactive</span>'}</td>
+                                        </tr>
+                                    `;
+                                    container.append(row);
+                                });
+
+                                // Click handler for MAC address
+                                $('#clientTableBody').on('click', 'b[data-mac]', function () {
+                                    const mac = $(this).data('mac');
+                                    const siteId = window.location.pathname.split('/').filter(Boolean).pop();
+
+                                    $('#clientDetailBody').html('Loading...');
+                                    $('#clientDetailModal').modal('show');
+
+                                    $.get(`/client-details-api/${siteId}/${mac}`, function (res) {
+                                        if (res.errorCode === 0) {
+                                            const d = res.result;
+                                            const detailHtml = `
+                                                <table class="table table-bordered">
+                                                    <tr><th>MAC</th><td>${d.mac}</td></tr>
+                                                    <tr><th>Name</th><td>${d.name}</td></tr>
+                                                    <tr><th>Device Type</th><td>${d.deviceType}</td></tr>
+                                                    <tr><th>Switch</th><td>${d.switchName} (${d.switchMac})</td></tr>
+                                                    <tr><th>Port</th><td>${d.port} (${d.standardPort})</td></tr>
+                                                    <tr><th>Traffic Down</th><td>${(d.trafficDown / 1_000_000).toFixed(2)} MB</td></tr>
+                                                    <tr><th>Traffic Up</th><td>${(d.trafficUp / 1_000_000).toFixed(2)} MB</td></tr>
+                                                    <tr><th>Uptime</th><td>${d.uptime} seconds</td></tr>
+                                                    <tr><th>Guest</th><td>${d.guest ? 'Yes' : 'No'}</td></tr>
+                                                    <tr><th>Blocked</th><td>${d.blocked ? 'Yes' : 'No'}</td></tr>
+                                                </table>
+                                            `;
+                                            $('#clientDetailBody').html(detailHtml);
+                                        } else {
+                                            $('#clientDetailBody').html('<div class="text-danger">Failed to load client details.</div>');
+                                        }
+                                    }).fail(function () {
+                                        $('#clientDetailBody').html('<div class="text-danger">Request failed.</div>');
+                                    });
+                                });
+
+                            } else {
+                                container.html(`<tr><td colspan="12" class="text-center text-muted">No client data found.</td></tr>`);
+                            }
+
+                            const stat = res.result.clientStat;
+                            const statCards = `
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Clients:</strong> <h1>${stat.total}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wired:</strong> <h1>${stat.wired}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wireless:</strong> <h1>${stat.wireless}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Guests:</strong> <h1>${stat.numGuest}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Users:</strong> <h1>${stat.numUser}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Good Signal:</strong> <h1>${stat.good}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Fair Signal:</strong> <h1>${stat.fair}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>No Signal Data:</strong> <h1>${stat.noData}</h1></div></div>
+                            `;
+                            statContainer.append(statCards);
+                        } else {
+                            $.get('/generate-new-api-token', function (res) {
+                                window.location.reload();
+                            });
+                            container.html(`<tr><td colspan="12" class="text-center text-muted">No client data found.</td></tr>`);
+                            statContainer.html(`<div class="col-12 text-danger text-center">Failed to load client stats.</div>`);
+                        }
+                    },
+                    error: function (err) {
+                        console.log(err)
+                        $('#clientTableBody').html(`<tr><td colspan="12" class="text-danger text-center">Failed to load client data.</td></tr>`);
+                    }
+                });
+            }
+
+            $.get('/traffic-api-access-token', function () {
+                const siteId = window.location.pathname.split('/').filter(Boolean).pop();
+                loadClientData(siteId);
+            }).fail(function () {
+                console.error("Failed to fetch access token.");
+            });
+        });
+    </script>
 @endsection
