@@ -41,6 +41,13 @@ use App\Models\User;
 
 // end of import
 
+use App\Http\Controllers\TicketsController;
+use App\Models\Tickets;
+use OwenIt\Auditing\Models\Audit;
+
+// end of import
+
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -528,8 +535,12 @@ Route::middleware([
         $dataHolder = [];
 
         $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-        $startTimestamp = Carbon::parse($request->startDate, 'UTC')->timestamp;
-        $endTimestamp = Carbon::parse($request->endDate, 'UTC')->timestamp;
+        // $startTimestamp = Carbon::parse($request->startDate)->timestamp;
+        // $endTimestamp = Carbon::parse($request->endDate)->timestamp;
+        $startTimestamp = Carbon::parse($request->startDate)->startOfDay()->timestamp;
+        $endTimestamp = Carbon::parse($request->endDate)->endOfDay()->timestamp;
+        // $startTimestamp = Carbon::parse($request->startDate)->startOfDay()->timestamp;
+        // $endTimestamp = Carbon::parse($request->endDate)->endOfDay()->timestamp;
 
         /**
          * first loop the sites and get their SITES_ID
@@ -792,7 +803,7 @@ Route::middleware([
                 'Authorization' => 'Bearer AccessToken='.$latestAccessToken, // Replace with your API key
             ])->withOptions([
                 'verify' => false,
-            ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$value['siteId'].'/dashboard/traffic-activities?start='.Carbon::parse($request->startDate, 'UTC')->timestamp.'&end='.Carbon::parse($request->endDate, 'UTC')->addDays(1)->timestamp);
+            ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$value['siteId'].'/dashboard/traffic-activities?start='.Carbon::parse($request->startDate)->startOfDay()->timestamp.'&end='.Carbon::parse($request->endDate)->addDays(1)->timestamp);
 
             $decodedResponseTrafficActivities = json_decode($responseTrafficActivities->body(), true);
 
@@ -897,8 +908,8 @@ Route::middleware([
             }
 
             // Step 2: Generate all dates in range
-            $startDate = Carbon::createFromTimestamp(Carbon::parse($request->startDate, 'UTC')->timestamp)->startOfDay();
-            $endDate = Carbon::createFromTimestamp(Carbon::parse($request->endDate, 'UTC')->timestamp)->endOfDay();
+            $startDate = Carbon::createFromTimestamp(Carbon::parse($request->startDate)->startOfDay()->timestamp)->startOfDay();
+            $endDate = Carbon::createFromTimestamp(Carbon::parse($request->endDate)->endOfDay()->timestamp)->endOfDay();
             $allDates = CarbonPeriod::create($startDate, $endDate);
 
             $allDateKeys = [];
@@ -1018,8 +1029,8 @@ Route::middleware([
                 '_combined_stats' => $combinedDailyStats,
                 '_usersAndUniqueUsers' => $resultUsersAndUniqueUsers,
                 '_unix' => [
-                    '_start_date' => Carbon::parse($request->startDate, 'UTC')->timestamp,
-                    '_end_date' => Carbon::parse($request->endDate, 'UTC')->timestamp,
+                    '_start_date' => Carbon::parse($request->startDate)->startOfDay()->timestamp,
+                    '_end_date' => Carbon::parse($request->endDate)->endOfDay()->timestamp,
                 ],
                 '_offline_days' => $formattedRanges,
                 '_dates' => [
@@ -1045,6 +1056,7 @@ Route::middleware([
         $formattedStartDate = Dater::humanReadableDateWithDay($startDate);
         $formattedEndDate = Dater::humanReadableDateWithDay($endDate);
         $formattedAcceptanceDate = Dater::humanReadableDateWithDay($request->acceptanceDate);
+        $downloadDate = date('F j, Y');
 
         if ($request->site === 'all') {
 
@@ -1056,7 +1068,8 @@ Route::middleware([
                 $request->supplier,
                 $formattedAcceptanceDate,
                 $request->people,
-                mergeCombinedStats($dataHolder)
+                mergeCombinedStats($dataHolder),
+                $downloadDate
             );
         } else {
 
@@ -1076,7 +1089,8 @@ Route::middleware([
                 $request->supplier,
                 $formattedAcceptanceDate,
                 $request->people,
-                mergeCombinedStats($dataHolder)
+                mergeCombinedStats($dataHolder),
+                $downloadDate
             );
         }
 
@@ -1085,8 +1099,8 @@ Route::middleware([
         // return response()->json([
         //     'site' => $request->site,
         //     'request_start_date' => $request->startDate,
-        //     'converted_start_date_to_unix' => Carbon::parse($request->startDate, 'UTC')->timestamp,
-        //     'converted_end_date_to_unix' => Carbon::parse($request->endDate, 'UTC')->timestamp,
+        //     'converted_start_date_to_unix' => Carbon::parse($request->startDate)->startOfDay()->timestamp,
+        //     'converted_end_date_to_unix' => Carbon::parse($request->endDate)->endOfDay()->timestamp,
         //     'start_date' => $startDate,
         //     'end_date' => $endDate,
         //     'all_dates' => $allDates,
@@ -1133,6 +1147,12 @@ Route::middleware([
 
     Route::get('/logs/{siteId}', function ($siteId){
         return view('sample-frontend.logs', [
+            'item' => Sites::where('siteId', $siteId)->first()
+        ]);
+    });
+
+    Route::get('/tickets/{siteId}', function ($siteId){
+        return view('sample-frontend.tickets', [
             'item' => Sites::where('siteId', $siteId)->first()
         ]);
     });
@@ -1488,6 +1508,101 @@ Route::middleware([
 
         // Return the view with auditlogs and the selected date range
         return view('auditlogs.auditlogs', compact('auditlogs', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/tickets-api/{siteId}', function ($siteId) {
+        $tickets = Tickets::where('sites_id', $siteId)->get();
+
+        return response()->json($tickets);
+    });
+    Route::get('/tickets', [TicketsController::class, 'index'])->name('tickets.index');
+    Route::get('/create-tickets', [TicketsController::class, 'create'])->name('tickets.create');
+    Route::get('/edit-tickets/{ticketsId}', [TicketsController::class, 'edit'])->name('tickets.edit');
+    Route::get('/show-tickets/{ticketsId}', [TicketsController::class, 'show'])->name('tickets.show');
+    Route::get('/delete-tickets/{ticketsId}', [TicketsController::class, 'delete'])->name('tickets.delete');
+    Route::get('/destroy-tickets/{ticketsId}', [TicketsController::class, 'destroy']);
+    Route::post('/store-tickets', [TicketsController::class, 'store'])->name('tickets.store');
+    Route::post('/update-tickets/{ticketsId}', [TicketsController::class, 'update']);
+    Route::post('/tickets-delete-all-bulk-data', [TicketsController::class, 'bulkDelete']);
+    Route::post('/tickets-move-to-trash-all-bulk-data', [TicketsController::class, 'bulkMoveToTrash']);
+    Route::post('/tickets-restore-all-bulk-data', [TicketsController::class, 'bulkRestore']);
+    Route::get('/trash-tickets', [TicketsController::class, 'trash']);
+    Route::get('/restore-tickets/{ticketsId}', [TicketsController::class, 'restore'])->name('tickets.restore');
+
+    Route::get('/ticket-audits', function () {
+        $audits = Audit::latest()->paginate(10);
+
+        return view('sample-frontend.ticket-audits', [
+            'audits' => $audits]);
+    });
+
+    // Tickets Search
+    Route::get('/tickets-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $tickets = Tickets::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('tickets.tickets', compact('tickets', 'search'));
+    });
+
+    // Tickets Paginate
+    Route::get('/tickets-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the tickets based on the 'paginate' value
+        $tickets = Tickets::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated tickets
+        return view('tickets.tickets', compact('tickets'));
+    });
+
+    // Tickets Filter
+    Route::get('/tickets-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for tickets
+        $query = Tickets::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $tickets = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $tickets = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $tickets = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all tickets without filtering
+            $tickets = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with tickets and the selected date range
+        return view('tickets.tickets', compact('tickets', 'from', 'to'));
     });
 
     // end...

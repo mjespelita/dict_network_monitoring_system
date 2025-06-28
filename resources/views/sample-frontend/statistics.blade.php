@@ -4,55 +4,7 @@
 @section('content')
     <h1>Performance - {{ $item->name }}</h1>
 
-    <!-- Sidebar for Desktop View -->
-    <div class='sidebar' id='mobileSidebar'>
-        <div class='logo'>
-            <div class="p-3">
-                <img src='{{ url('assets/librify-logo.png') }}' alt=''> <br>
-            </div>
-            <div class="p-3">
-                <small>Powered by</small>
-                <img src='{{ url('assets/logo.png') }}' alt='' style="width: 60px !important">
-            </div>
-        </div>
-
-        <div class="p-2">
-            <button type='button' class='btn btn-outline-secondary dropdown-toggle' data-bs-toggle='dropdown' aria-haspopup='true' aria-expanded='false' style="width: 100%;">
-                {{ $item->name }}
-            </button>
-            <div class='dropdown-menu' style="width: 95%; border: 1px solid #212529">
-                @forelse (App\Models\Sites::all() as $site)
-                    <a class='dropdown-item bulk-move-to-trash' href='{{ url('/show-sites/'.$site->siteId) }}'><i class='fa fa-eye'></i> {{ $site->name }}</a>
-                @empty
-                    <p>No Sites</p>
-                @endforelse
-            </div>
-        </div>
-
-        <a href='{{ url('sites') }}'><i class='fas fa-arrow-left'></i> Back</a>
-        <div class="p-2">
-            <b class="text-secondary">Monitoring</b>
-        </div>
-        <a href='{{ url('show-sites/'.$item->siteId) }}' class='{{ request()->is('show-sites/*') ? 'active' : '' }}'><i class='fas fa-tachometer-alt'></i> Dashboard</a>
-        <a href='{{ url('statistics/'.$item->siteId) }}' class='{{ request()->is('statistics/*', 'trash-statistics', 'create-statistics', 'show-statistics/*', 'edit-statistics/*', 'delete-statistics/*', 'statistics-search*') ? 'active' : '' }}'>
-            <i class="fas fa-line-chart"></i> Statistics
-        </a>
-        <a href='{{ url('devices/'.$item->siteId) }}' class='{{ request()->is('devices/*', 'trash-devices', 'create-devices', 'show-devices/*', 'edit-devices/*', 'delete-devices/*', 'devices-search*') ? 'active' : '' }}'>
-            <i class="fas fa-desktop"></i> Devices
-        </a>
-        <a href='{{ url('clients/'.$item->siteId) }}' class='{{ request()->is('clients/*', 'trash-clients', 'create-clients', 'show-clients/*', 'edit-clients/*', 'delete-clients/*', 'clients-search*') ? 'active' : '' }}'>
-            <i class="fas fa-users"></i> Clients
-        </a>
-        {{-- <a href='{{ url('insights/'.$item->siteId) }}' class='{{ request()->is('insights/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
-            <i class="fas fa-chart-line"></i> Insights
-        </a> --}}
-        <a href='{{ url('logs/'.$item->siteId) }}' class='{{ request()->is('logs/*', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
-            <i class="fas fa-clipboard-list"></i> Logs
-        </a>
-        {{-- <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'>
-            <i class="fas fa-file-alt"></i> Reports
-        </a> --}}
-    </div>
+    <x-internal-sidebar :item="$item" />
 
     <div class='card'>
         <div class='card-body'>
@@ -225,6 +177,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
+    {{-- pollinator --}}
+
+    <script src="{{ url('assets/pollinator/pollinator.min.js') }}"></script>
+
     <script>
         $(document).ready(function () {
             const chartOptions = {
@@ -274,9 +230,6 @@
                 const segments = path.split('/');
                 const siteId = segments.filter(segment => segment.length > 0).pop();
                 const url = `/traffic-api/${startUnix}/${endUnix}/${siteId}`;
-
-                console.log(startUnix);
-                console.log(endUnix);
 
                 $.ajax({
                     url: url,
@@ -512,6 +465,23 @@
             }
 
             // On page load: fetch access token and load data
+
+            // const API_ACCESS_TOKEN = new PollingManager({
+            //     url: `/traffic-api-access-token`, // API to fetch data
+            //     delay: 5000, // Poll every 5 seconds
+            //     failRetryCount: 3, // Retry on failure
+            //     onSuccess: (token) => {
+
+            //     },
+            //     onError: (error) => {
+            //         console.error("Error fetching data:", error);
+            //         // Your custom error handling logic
+            //     }
+            // });
+
+            // // Start polling
+            // API_ACCESS_TOKEN.start();
+
             $.get('/traffic-api-access-token', function (token) {
                 const now = new Date();
                 const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
@@ -523,7 +493,7 @@
                 $('#dateRangeForm').on('submit', function (e) {
                     e.preventDefault();
 
-                    let startDate = $('#startDate').val(); // original user-selected start
+                    let startDate = $('#startDate').val(); // original user-selected start (YYYY-MM-DD)
                     let endDate = $('#endDate').val();     // original user-selected end
 
                     if (!startDate || !endDate) {
@@ -531,7 +501,21 @@
                         return;
                     }
 
-                    // Store original dates (unmodified)
+                    // Create Date objects from user input
+                    let start = new Date(startDate);
+                    let end = new Date(endDate);
+
+                    // Set start to 00:00:00.000 (start of the day)
+                    start.setHours(0, 0, 0, 0);
+
+                    // Set end to 23:59:59.999 (end of the day)
+                    end.setHours(23, 59, 59, 999);
+
+                    // Convert to Unix timestamps (seconds)
+                    const startTimestamp = Math.floor(start.getTime() / 1000).toString();
+                    const endTimestamp = Math.floor(end.getTime() / 1000).toString();
+
+                    // Format original dates for display (unmodified)
                     const originalStart = new Date(startDate).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'short',
@@ -543,20 +527,22 @@
                         day: '2-digit'
                     });
 
-                    const start = Math.floor(new Date(startDate).getTime() / 1000).toString();
-                    const end = Math.floor(new Date(endDate).getTime() / 1000).toString();
-
-                    // You can pass both to your function if needed
-                    loadTrafficData(token, start, end, originalStart, originalEnd);
-
-                    console.log(start);
+                    // Call your function with updated timestamps
+                    loadTrafficData(token, startTimestamp, endTimestamp, originalStart, originalEnd);
 
                     $('.date-range').html(`
                         <b>${originalStart} - ${originalEnd}</b>
-                    `)
+                    `);
+
+                    console.log('token: ' + token);
+                    console.log('startTimestamp: ' + startTimestamp);
+                    console.log('endTimestamp: ' + endTimestamp);
+                    console.log('originalStart: ' + originalStart);
+                    console.log('originalEnd: ' + originalEnd);
+                    console.log('humanReadableStart: ' + new Date(startTimestamp * 1000).toUTCString());
+                    console.log('humanReadableEnd: ' + new Date(endTimestamp * 1000).toUTCString());
 
                 });
-
             }).fail(function () {
                 console.error("Failed to fetch access token.");
             });

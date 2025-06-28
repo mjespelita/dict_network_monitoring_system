@@ -25,4 +25,9 @@ class Sites extends Model
     {
         return $this->belongsTo(Customers::class, 'customerId');
     }
+
+    public function tickets()
+    {
+        return $this->hasMany(Tickets::class);
+    }
 }

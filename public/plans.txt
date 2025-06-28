@@ -52,3 +52,55 @@ January 1, 1970 - 0
 32 - bit
 January 19, 2038 - 2147483647
 December 4, 292,277,026,596 - 9223372036854775807
+
+// ===========================================================
+
+    e.5.3.1.1 - (OK) Location and Access Point Name and Model
+    e.5.3.1.2 - (OK) Date Of Download
+    e.5.3.1.3 - (OK) Percent Uptime Per Location
+    e.5.3.1.4 - (OK *) Total numbers of unique Users per month
+    e.5.3.1.5 - (OK) Total numbers of Users per month
+    e.5.3.1.6 - (OK) Total numbers of Data usage
+    e.5.3.1.7 - (OK) Average Bandwidth Speed
+    e.5.3.1.8 - (OK) Average Data Consumption
+
+e.5.3.2 - Data for billing and payment purposes - a service report shall
+have to be readily available for download for billing purposes
+of the service rendered.
+
+    e.5.3.2.1 - (OK) Location and Date Downloaded
+    e.5.3.2.2 - (OK) Percent Uptime Per Location
+    e.5.3.2.3 - (OK) Total number of Data usage
+
+e.5.4 - System's Notification Capability - The monitoring system shall notify
+though Notification of Downtime/Uptime Restoration and followed
+by a generated ticket-based reporting for every incident (outage and
+restoration), and shall be automatically emailed/sent to the authorized
+DICT RO8 representative.
+
+    e.5.4.1 - Notification of Downtime/Uptime Restoration shall include:
+        e.5.4.1.1 - Location and Site Name
+        e.5.4.1.2 - Start of Downtime/Uptime Restoration
+
+    e.5.4.2 - Ticket-based reporting for every incedent shall include:
+        e.5.4.2.1 - For Downtime/Outage:
+            e.5.4.2.1.1 - Ticket number and a status stating the specific location is currently down.
+            e.5.4.2.1.2 - Location and Site Name.
+            e.5.4.2.1.3 - Total period of Downtime.
+            e.5.4.2.1.3 - Actions to be taken.
+        e.5.4.2.2 - For Network restoration:
+            e.5.4.2.2.1 - Ticket number and a status stating the specific location is now restored.
+            e.5.4.2.2.2 - Total period of Downtime.
+            e.5.4.2.2.2 - Actions taken during downtime period.
+
+e.5.5 - (OK) Must be capable of tracking and sending event logs of the network.
+e.5.6 - The Service must provide ...s to the looking glass with a full view of
+routes and hops of the ... network.
+e.5.7 - (OK) Access to the controller both physically and remotely via VPN of any similar technology.
+e.5.8 - (OK) Bandwidth Management.
+e.5.7 - (OK) Monitoring of unique number of users per site.
+
+on Saturday
+
+logging
+connection on another system - confirmation
