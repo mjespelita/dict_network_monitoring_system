@@ -23,12 +23,14 @@
         <div class='sidebar' id='mobileSidebar'>
             <div class='logo'>
                 <div class="p-3">
-                    <img src='{{ url('assets/librify-logo.png') }}' alt=''> <br>
+                    <img src='{{ url('assets/dict-logo.png') }}' alt='' style="width: 200px !important"> <br>
+                    <b>DICT Network Monitoring System</b>
                 </div>
-                <div class="p-4">
-                    <small>Powered by</small>
-                    <img src='{{ url('assets/logo.png') }}' alt='' style="width: 60px !important">
-                </div>
+                {{-- <div class="p-4">
+                    <small>Powered by</small> <br>
+                    <img src='{{ url('assets/librify-logo.png') }}' alt='' style="width: 90px !important"> &
+                    <img src='{{ url('assets/logo.png') }}' alt='' style="width: 80px !important">
+                </div> --}}
             </div>
             <a href='{{ url('dashboard') }}' class='{{ request()->is('dashboard', 'admin-dashboard') ? 'active' : '' }}'><i class='fas fa-tachometer-alt'></i> Dashboard</a>
             {{-- <a href='{{ url('customers') }}' class='{{ request()->is('customers', 'trash-customers', 'create-customers', 'show-customers/*', 'edit-customers/*', 'delete-customers/*', 'customers-search*') ? 'active' : '' }}'><i class='fas fa-users'></i> Customers</a> --}}

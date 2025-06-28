@@ -186,7 +186,6 @@ class TicketsController extends Controller {
 
         // Tickets::where('id', $ticketsId)->delete();
 
-
         $ticket = Tickets::findOrFail($ticketsId);
         $ticket->delete();
 

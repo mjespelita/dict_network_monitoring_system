@@ -47,10 +47,90 @@ use OwenIt\Auditing\Models\Audit;
 
 // end of import
 
+function deviceToTarget()
+{
+    return "apTrafficActivities";
+}
 
+function deviceToTargets()
+{
+    return ["apTrafficActivities", "switchTrafficActivities"];
+}
 
-Route::get('/', function () {
-    return view('welcome');
+function trafficDataImputator($start, $end, $siteId)
+{
+    $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+
+    $response = Http::withHeaders([
+        'Authorization' => 'Bearer AccessToken=' . $latestAccessToken,
+    ])->withOptions([
+        'verify' => false,
+    ])->get(
+        env('OMADAC_SERVER') .
+        '/openapi/v1/' . env('OMADAC_ID') .
+        '/sites/' . $siteId .
+        '/dashboard/traffic-activities?start=' . $start . '&end=' . $end
+    );
+
+    $enableImputation = false;
+
+    $data = json_decode($response->body(), true);
+
+    if (!isset($data['result']) || !is_array($data['result'])) {
+        return $data;
+    }
+
+    // Only run imputation when enabled
+    if ($enableImputation) {
+        foreach (deviceToTargets() as $targetKey) {
+            if (
+                empty($data['result'][$targetKey]) ||
+                !is_array($data['result'][$targetKey])
+            ) {
+                continue;
+            }
+
+            $traffic = &$data['result'][$targetKey];
+
+            // 1️⃣  Compute averages
+            $sumTx = $sumDx = $cntTx = $cntDx = 0;
+
+            foreach ($traffic as $item) {
+                if (isset($item['txData']) && is_numeric($item['txData'])) {
+                    $sumTx += $item['txData'];
+                    $cntTx++;
+                }
+                if (isset($item['dxData']) && is_numeric($item['dxData'])) {
+                    $sumDx += $item['dxData'];
+                    $cntDx++;
+                }
+            }
+
+            $avgTx = $cntTx ? $sumTx / $cntTx : 1;
+            $avgDx = $cntDx ? $sumDx / $cntDx : 1;
+
+            // Helper: ±10 % jitter
+            $jitter = fn(float $avg) =>
+                round($avg * (0.9 + mt_rand() / mt_getrandmax() * 0.2), 2);
+
+            // 2️⃣  Impute missing values
+            foreach ($traffic as &$item) {
+                if (!isset($item['txData']) || !is_numeric($item['txData'])) {
+                    $item['txData'] = $jitter($avgTx);
+                }
+                if (!isset($item['dxData']) || !is_numeric($item['dxData'])) {
+                    $item['dxData'] = $jitter($avgDx);
+                }
+            }
+            unset($item); // break reference
+        }
+    }
+
+    return $data;
+}
+
+Route::get('/', function (Request $request) {
+    return redirect('/dashboard');
 });
 
 Route::get('/users', function () {
@@ -103,14 +183,8 @@ Route::middleware([
 
     Route::get('/traffic-api/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
 
-        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer AccessToken='.$latestAccessToken, // Replace with your API key
-        ])->withOptions([
-            'verify' => false,
-        ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$siteId.'/dashboard/traffic-activities?start='.$start.'&end='.$end);
+        return response()->json(trafficDataImputator($start, $end, $siteId));
 
-        return json_decode($response->body(), true);
     });
 
     Route::get('/top-cpu-usage-api/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
@@ -298,24 +372,14 @@ Route::middleware([
             return number_format($bps, 2) . ' ' . $units[$i];
         }
 
-        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-        // TRAFFIC ACTIVITIES
-
-        $responseTrafficActivities = Http::withHeaders([
-            'Authorization' => 'Bearer AccessToken='.$latestAccessToken, // Replace with your API key
-        ])->withOptions([
-            'verify' => false,
-        ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$siteId.'/dashboard/traffic-activities?start='.$start.'&end='.$end);
-
-        $decodedResponseTrafficActivities = json_decode($responseTrafficActivities->body(), true);
+        $decodedResponseTrafficActivities = trafficDataImputator($start, $end, $siteId);
 
         // average bandwidth speed -------------------------------------------------------------------------------------------------------
 
         $totalTx = 0;
         $totalDx = 0;
 
-        $trafficItems = $decodedResponseTrafficActivities['result']['switchTrafficActivities'] ?? [];
+        $trafficItems = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
 
         if (!empty($trafficItems)) {
             foreach ($trafficItems as $item) {
@@ -385,19 +449,9 @@ Route::middleware([
             return number_format($bytes, 2) . ' ' . $units[$unitIndex];
         }
 
-        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+        $decodedResponseTrafficActivities = trafficDataImputator($start, $end, $siteId);
 
-        // TRAFFIC ACTIVITIES
-
-        $responseTrafficActivities = Http::withHeaders([
-            'Authorization' => 'Bearer AccessToken='.$latestAccessToken, // Replace with your API key
-        ])->withOptions([
-            'verify' => false,
-        ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$siteId.'/dashboard/traffic-activities?start='.$start.'&end='.$end);
-
-        $decodedResponseTrafficActivities = json_decode($responseTrafficActivities->body(), true);
-
-        $trafficData = $decodedResponseTrafficActivities['result']['switchTrafficActivities'] ?? [];
+        $trafficData = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
 
         // total download and upload ------------------------------------------------------------------------------------------------
 
@@ -427,71 +481,97 @@ Route::middleware([
 
     Route::get('/get-percentage-availability-api/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
 
-        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+        // $decodedResponseTrafficActivities = trafficDataImputator($start, $end, $siteId);
 
-        // TRAFFIC ACTIVITIES
+        // $trafficData = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
 
-        $responseTrafficActivities = Http::withHeaders([
-            'Authorization' => 'Bearer AccessToken='.$latestAccessToken, // Replace with your API key
-        ])->withOptions([
-            'verify' => false,
-        ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$siteId.'/dashboard/traffic-activities?start='.$start.'&end='.$end);
+        // // percentage availability ----------------------------------------------------------------------------------------------
 
-        $decodedResponseTrafficActivities = json_decode($responseTrafficActivities->body(), true);
+        // // // Step 1: Parse timestamps into unique dates with traffic
+        // $trafficData = $decodedResponseTrafficActivities['result'][deviceToTarget()];
+        // $dateMap = [];
 
-        $trafficData = $decodedResponseTrafficActivities['result']['switchTrafficActivities'] ?? [];
+        // foreach ($trafficData as $item) {
+        //     if (!empty($item['txData']) || !empty($item['dxData'])) {
+        //         $dateKey = date('Y-m-d', $item['time']); // e.g., "2025-05-08"
+        //         $dateMap[$dateKey] = true;
+        //     }
+        // }
 
-        // percentage availability ----------------------------------------------------------------------------------------------
+        // $missingDates = [];
+        // $currentMissingRange = [];
 
-        // // Step 1: Parse timestamps into unique dates with traffic
-        $trafficData = $decodedResponseTrafficActivities['result']['switchTrafficActivities'];
-        $dateMap = [];
+        // foreach ($trafficData as $item) {
+        //     $date = (new DateTime('@' . $item['time']))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d');
+
+        //     if (empty($item['txData']) && empty($item['dxData'])) {
+        //         $currentMissingRange[] = $date;
+        //     } else {
+        //         // Close current missing range if exists
+        //         if (!empty($currentMissingRange)) {
+        //             $missingDates[] = $currentMissingRange;
+        //             $currentMissingRange = [];
+        //         }
+        //     }
+        // }
+
+        // // Handle the final range if the array ends with missing data
+        // if (!empty($currentMissingRange)) {
+        //     $missingDates[] = $currentMissingRange;
+        // }
+
+        // // Format the output into readable ranges
+        // $formattedRanges = [];
+
+        // foreach ($missingDates as $range) {
+        //     $startOfflines = date('M d Y', strtotime($range[0]));
+        //     $endOfflines = date('M d Y', strtotime(end($range)));
+
+        //     if ($startOfflines === $endOfflines) {
+        //         $formattedRanges[] = $startOfflines;
+        //     } else {
+        //         $formattedRanges[] = "$startOfflines - $endOfflines";
+        //     }
+        // }
+
+        // $startDate = Carbon::createFromTimestamp($start);
+        // $endDate = Carbon::createFromTimestamp($end);
+        // $allDates = CarbonPeriod::create($startDate, $endDate);
+
+        // $allDateKeys = [];
+        // foreach ($allDates as $date) {
+        //     $allDateKeys[] = $date->format('Y-m-d');
+        // }
+
+        // // Step 3: Count offline days
+        // $offlineDays = 0;
+        // foreach ($allDateKeys as $date) {
+        //     if (!isset($dateMap[$date])) {
+        //         $offlineDays++;
+        //     }
+        // }
+
+        // // Step 4: Calculate availability percent
+        // $daysInFirstMonth = $startDate->copy()->endOfMonth()->day;
+        // $totalDaysWithData = $daysInFirstMonth - $offlineDays;
+        // $availabilityPercent = round(($totalDaysWithData / $daysInFirstMonth) * 100);
+
+        $decodedResponse = trafficDataImputator($start, $end, $siteId);
+        $trafficData = $decodedResponse['result'][deviceToTarget()] ?? [];
+
+        // Step 1: Map online days based on txData/rxData
+        $dateMap = []; // Tracks which dates had traffic
 
         foreach ($trafficData as $item) {
-            if (!empty($item['txData']) || !empty($item['dxData'])) {
-                $dateKey = date('Y-m-d', $item['time']); // e.g., "2025-05-08"
+            if (!empty($item['txData']) || !empty($item['rxData'])) {
+                $dateKey = gmdate('Y-m-d', $item['time']); // UTC date string
                 $dateMap[$dateKey] = true;
             }
         }
 
-        $missingDates = [];
-        $currentMissingRange = [];
-
-        foreach ($trafficData as $item) {
-            $date = (new DateTime('@' . $item['time']))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d');
-
-            if (empty($item['txData']) && empty($item['dxData'])) {
-                $currentMissingRange[] = $date;
-            } else {
-                // Close current missing range if exists
-                if (!empty($currentMissingRange)) {
-                    $missingDates[] = $currentMissingRange;
-                    $currentMissingRange = [];
-                }
-            }
-        }
-
-        // Handle the final range if the array ends with missing data
-        if (!empty($currentMissingRange)) {
-            $missingDates[] = $currentMissingRange;
-        }
-
-        // Format the output into readable ranges
-        $formattedRanges = [];
-
-        foreach ($missingDates as $range) {
-            $startOfflines = date('M d Y', strtotime($range[0]));
-            $endOfflines = date('M d Y', strtotime(end($range)));
-
-            if ($startOfflines === $endOfflines) {
-                $formattedRanges[] = $startOfflines;
-            } else {
-                $formattedRanges[] = "$startOfflines - $endOfflines";
-            }
-        }
-
-        $startDate = Carbon::createFromTimestamp($start);
-        $endDate = Carbon::createFromTimestamp($end);
+        // Step 2: Generate all dates between start and end
+        $startDate = Carbon::createFromTimestamp($start)->startOfDay();
+        $endDate = Carbon::createFromTimestamp($end)->endOfDay();
         $allDates = CarbonPeriod::create($startDate, $endDate);
 
         $allDateKeys = [];
@@ -499,23 +579,69 @@ Route::middleware([
             $allDateKeys[] = $date->format('Y-m-d');
         }
 
-        // Step 3: Count offline days
+        // Step 3: Identify offline days
         $offlineDays = 0;
+        $missingDates = [];
+        $currentRange = [];
+
         foreach ($allDateKeys as $date) {
             if (!isset($dateMap[$date])) {
                 $offlineDays++;
+                $currentRange[] = $date;
+            } else {
+                if (!empty($currentRange)) {
+                    $missingDates[] = $currentRange;
+                    $currentRange = [];
+                }
             }
         }
 
-        // Step 4: Calculate availability percent
-        $daysInFirstMonth = $startDate->copy()->endOfMonth()->day;
-        $totalDaysWithData = $daysInFirstMonth - $offlineDays;
-        $availabilityPercent = round(($totalDaysWithData / $daysInFirstMonth) * 100);
+        if (!empty($currentRange)) {
+            $missingDates[] = $currentRange;
+        }
+
+        // Step 4: Format missing date ranges
+        $formattedRanges = [];
+        foreach ($missingDates as $range) {
+            $startOff = date('M d Y', strtotime($range[0]));
+            $endOff = date('M d Y', strtotime(end($range)));
+            $formattedRanges[] = ($startOff === $endOff) ? $startOff : "$startOff - $endOff";
+        }
+
+        // Step 5: Calculate accurate availability percentage
+        $totalDays = count($allDateKeys);
+        $onlineDays = $totalDays - $offlineDays;
+        $availabilityPercent = $totalDays > 0 ? round(($onlineDays / $totalDays) * 100) : 0;
 
         return response()->json($availabilityPercent);
 
         // end of percentage availability -------------------------------------------------------------------------------------------
 
+    });
+
+    Route::get('/get-traffic-distribution/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
+
+        $client = new \GuzzleHttp\Client();
+        $omadacId = env('OMADAC_ID');
+
+        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+
+        try {
+            $res = $client->request('GET', env('OMADAC_SERVER') . "/openapi/v1/{$omadacId}/sites/{$siteId}/dashboard/traffic-distribution?start=".$start."&end=".$end, [
+                'verify' => false,
+                'headers' => [
+                    'Authorization' => 'Bearer AccessToken=' . $latestAccessToken, // Use appropriate token source
+                ]
+            ]);
+
+            return response()->json(json_decode($res->getBody(), true));
+        } catch (\Exception $e) {
+            return response()->json([
+                'errorCode' => 1,
+                'message' => 'Failed to fetch device data.',
+                'error' => $e->getMessage()
+            ]);
+        }
     });
 
     Route::get('/export-general-data-into-pdf', function (Request $request) {
@@ -799,20 +925,14 @@ Route::middleware([
 
             // TRAFFIC ACTIVITIES
 
-            $responseTrafficActivities = Http::withHeaders([
-                'Authorization' => 'Bearer AccessToken='.$latestAccessToken, // Replace with your API key
-            ])->withOptions([
-                'verify' => false,
-            ])->get(env('OMADAC_SERVER').'/openapi/v1/'.env('OMADAC_ID').'/sites/'.$value['siteId'].'/dashboard/traffic-activities?start='.Carbon::parse($request->startDate)->startOfDay()->timestamp.'&end='.Carbon::parse($request->endDate)->addDays(1)->timestamp);
-
-            $decodedResponseTrafficActivities = json_decode($responseTrafficActivities->body(), true);
+            $decodedResponseTrafficActivities = trafficDataImputator(Carbon::parse($request->startDate)->startOfDay()->timestamp, Carbon::parse($request->endDate)->addDays(1)->timestamp, $value['siteId']);
 
             // average bandwidth speed -------------------------------------------------------------------------------------------------------
 
             $totalTx = 0;
             $totalDx = 0;
 
-            $trafficItems = $decodedResponseTrafficActivities['result']['switchTrafficActivities'] ?? [];
+            $trafficItems = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
 
             if (!empty($trafficItems)) {
                 foreach ($trafficItems as $item) {
@@ -861,7 +981,7 @@ Route::middleware([
             // percentage availability ----------------------------------------------------------------------------------------------
 
             // // Step 1: Parse timestamps into unique dates with traffic
-            $trafficData = $decodedResponseTrafficActivities['result']['switchTrafficActivities'];
+            $trafficData = $decodedResponseTrafficActivities['result'][deviceToTarget()];
             $dateMap = []; // date that is online
 
             foreach ($trafficData as $item) {

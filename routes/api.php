@@ -3,6 +3,7 @@
 use App\Models\Auditlogs;
 use App\Models\Customers;
 use App\Models\Sites;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,4 +25,8 @@ Route::get('/sites', function (Request $request) {
 
 Route::post('/add-user', function (Request $request) {
     return response()->json($request);
+});
+
+Route::get('/users', function () {
+    return response()->json(User::all());
 });

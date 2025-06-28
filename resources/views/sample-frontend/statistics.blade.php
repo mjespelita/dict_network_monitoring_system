@@ -43,6 +43,15 @@
             <div class="p-5">
                 <div class="row">
 
+
+                    <style>
+                        @keyframes pulse {
+                            0% { background-color: #e0e0e0; }
+                            50% { background-color: #f0f0f0; }
+                            100% { background-color: #e0e0e0; }
+                        }
+                    </style>
+
                     <div class="col-lg-4 col md-4 col-sm-12">
                         <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                         <h5>Percentage Availability</h5>
@@ -54,19 +63,12 @@
                                 border-radius: 6px;
                                 animation: pulse 1.5s infinite;">
                             </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
                         </div>
                     </div>
+
                     <div class="col-lg-4 col md-4 col-sm-12">
                         <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                        <h5>Data Transfer Summary</h5>
                         <div id="uploadAndDownloadAverageSpeedDiv" class="table-responsive">
                             <div style="
                                 width: 100%;
@@ -76,18 +78,11 @@
                                 animation: pulse 1.5s infinite;">
                             </div>
 
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
                         </div>
                     </div>
                     <div class="col-lg-4 col md-4 col-sm-12">
                         <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                        <h5>Network Usage Summary</h5>
                         <div id="uploadDownloadTotalDiv" class="table-responsive">
                             <div style="
                                 width: 100%;
@@ -96,24 +91,32 @@
                                 border-radius: 6px;
                                 animation: pulse 1.5s infinite;">
                             </div>
-
-                            <style>
-                                @keyframes pulse {
-                                    0% { background-color: #e0e0e0; }
-                                    50% { background-color: #f0f0f0; }
-                                    100% { background-color: #e0e0e0; }
-                                }
-                            </style>
-
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="p-5">
-                <h5>Traffic (MBytes)</h5>
                 <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                <h5>Switch Traffic Activities (MBytes)</h5>
                 <div id="lineChartStatisticsTraffic"></div>
+                <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
+                <div id="lineChartStatisticsTraffic2"></div>
+            </div>
+
+
+            <div class="p-5">
+                <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
+                <h5>Traffic Distribution</h5>
+                <div id="trafficDistributionDiv" class="table-responsive">
+                    <div style="
+                        width: 100%;
+                        height: 200px;
+                        background-color: #e0e0e0;
+                        border-radius: 6px;
+                        animation: pulse 1.5s infinite;">
+                    </div>
+                </div>
             </div>
 
             <div class="p-5">
@@ -166,6 +169,33 @@
                 </div>
             </div>
 
+            <div class="p-5">
+                <h5 class="fw-bold">Console</h5>
+                <div style="
+                    background-color: #1e1e1e;
+                    color: #dcdcdc;
+                    font-family: Consolas, 'Courier New', monospace;
+                    font-size: 15px;
+                    border: 1px solid #333;
+                    border-radius: 6px;
+                    padding: 16px;
+                    margin: 20px auto;
+                    width: 100%;
+                    overflow-x: auto;
+                    overflow-y: auto;
+                    max-height: 300px;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+                "><pre id="console" style="
+                    margin: 0;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    line-height: 1.5;
+                    color: #6896df;
+"></pre></div>
+            </div>
+
         </div>
     </div>
 
@@ -183,7 +213,7 @@
 
     <script>
         $(document).ready(function () {
-            const chartOptions = {
+            const chartOptions1 = {
                 chart: {
                     type: 'line',
                     height: 300,
@@ -197,10 +227,10 @@
                     }
                 },
                 stroke: { curve: 'smooth' },
-                colors: ["#FE9730", "#01B375"],
+                colors: ["#00C8A8", "#7A91B5"],
                 series: [
-                    { name: 'Received', data: [] },
-                    { name: 'Transmitted', data: [] }
+                    { name: 'Download', data: [] },
+                    { name: 'Upload', data: [] }
                 ],
                 xaxis: {
                     categories: [],
@@ -212,18 +242,67 @@
                 },
                 tooltip: {
                     x: {
-                        format: 'dd MMM yyyy hh:mm a'
+                        // format: 'dd MMM yyyy hh:mm a'
+                        format: 'dd MMM yyyy'
                     }
                 },
                 grid: {
-                    borderColor: '#ddd',
+                    // borderColor: '#ddd',
+                    borderColor: '#a6a6a6',
                     xaxis: { lines: { show: true } },
                     yaxis: { lines: { show: true } }
                 }
             };
 
-            const lineChartStatisticsTraffic = new ApexCharts(document.querySelector("#lineChartStatisticsTraffic"), chartOptions);
+            const chartOptions2 = {
+                chart: {
+                    type: 'line',
+                    height: 300,
+                    background: '#ffffff',
+                    dropShadow: {
+                        enabled: true,
+                        top: 1,
+                        left: 1,
+                        blur: 3,
+                        opacity: 0.1
+                    }
+                },
+                stroke: { curve: 'smooth' },
+                colors: ["#00C8A8", "#7A91B5"],
+                series: [
+                    { name: 'Upload', data: [] },
+                    { name: 'Download', data: [] }
+                ],
+                xaxis: {
+                    categories: [],
+                    tickAmount: 10,
+                    labels: {
+                        rotate: 0,
+                        style: { fontSize: '11px' }
+                    }
+                },
+                tooltip: {
+                    x: {
+                        // format: 'dd MMM yyyy hh:mm a'
+                        format: 'dd MMM yyyy'
+                    }
+                },
+                grid: {
+                    // borderColor: '#ddd',
+                    borderColor: '#a6a6a6',
+                    xaxis: { lines: { show: true } },
+                    yaxis: { lines: { show: true } }
+                }
+            };
+
+            const lineChartStatisticsTraffic = new ApexCharts(document.querySelector("#lineChartStatisticsTraffic"), chartOptions1);
+            const lineChartStatisticsTraffic2 = new ApexCharts(document.querySelector("#lineChartStatisticsTraffic2"), chartOptions2);
             lineChartStatisticsTraffic.render();
+            lineChartStatisticsTraffic2.render();
+
+
+
+            $('#console').append("> Waiting for network response... <br>")
 
             function loadTrafficData(token, startUnix, endUnix) {
                 const path = window.location.pathname;
@@ -248,6 +327,11 @@
 
                             // return;
                         }
+
+                        $('#console').append("> SUCCESS <br>")
+                        $('#console').append(JSON.stringify(res, null, 2))
+
+                        // switch_traffic_activities =======================================
 
                         const traffic = res.result.switchTrafficActivities;
 
@@ -291,13 +375,76 @@
                             outbound.push(Number(aggregated[time].dx.toFixed(2)));
                         });
 
+                        // end of switch_traffic_activities =======================================
+
+                        // ap_traffic_activities =======================================
+
+                        const apTraffic = res.result.apTrafficActivities;
+
+                        const aggregated_apTrafficActivities = {};
+
+                        // Aggregate traffic by hour
+                        apTraffic.forEach(item => {
+                            const roundedTime = Math.floor(item.time / 3600) * 3600;
+                            if (!aggregated_apTrafficActivities[roundedTime]) {
+                                aggregated_apTrafficActivities[roundedTime] = { tx: 0, dx: 0 };
+                            }
+                            aggregated_apTrafficActivities[roundedTime].tx += item.txData || 0;
+                            aggregated_apTrafficActivities[roundedTime].dx += item.dxData || 0;
+                        });
+
+                        const sortedTimes_apTrafficActivities = Object.keys(aggregated_apTrafficActivities).sort((a, b) => a - b);
+                        const inbound_apTrafficActivities = [];
+                        const outbound_apTrafficActivities = [];
+                        const timestamps_apTrafficActivities = [];
+
+                        let lastDateStr_apTrafficActivities = '';
+
+                        sortedTimes_apTrafficActivities.forEach(time => {
+                            const d = new Date(time * 1000);
+                            const dateStr = d.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: '2-digit'
+                            });
+                            const timeStr = d.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+
+                            const label = (dateStr === lastDateStr_apTrafficActivities) ? timeStr : `${dateStr} ${timeStr}`;
+                            lastDateStr_apTrafficActivities = dateStr;
+
+                            timestamps_apTrafficActivities.push(label);
+                            inbound_apTrafficActivities.push(Number(aggregated_apTrafficActivities[time].tx.toFixed(2)));
+                            outbound_apTrafficActivities.push(Number(aggregated_apTrafficActivities[time].dx.toFixed(2)));
+                        });
+
+                        // end of ap_traffic_activities =======================================
+
                         lineChartStatisticsTraffic.updateOptions({
                             series: [
-                                { name: 'Received', data: inbound },
-                                { name: 'Transmitted', data: outbound }
+                                { name: 'Download', data: outbound },
+                                { name: 'Upload', data: inbound }
                             ],
                             xaxis: {
                                 categories: timestamps,
+                                tickAmount: 10,
+                                labels: {
+                                    rotate: 0,
+                                    style: { fontSize: '11px' }
+                                }
+                            }
+                        });
+
+                        lineChartStatisticsTraffic2.updateOptions({
+                            series: [
+                                { name: 'Download', data: outbound_apTrafficActivities },
+                                { name: 'Upload', data: inbound_apTrafficActivities },
+                            ],
+                            xaxis: {
+                                categories: timestamps_apTrafficActivities,
                                 tickAmount: 10,
                                 labels: {
                                     rotate: 0,
@@ -317,12 +464,70 @@
                         getBandwidthUsageApi(startUnix, endUnix, siteId);
                         getUploadDownloadTotal(startUnix, endUnix, siteId);
                         getPercentageAvailability(startUnix, endUnix, siteId);
+                        getTrafficDistribution(startUnix, endUnix, siteId)
                     },
                     error: function (xhr) {
                         console.error("Request failed:", xhr.statusText, xhr);
                     }
                 });
             }
+
+            function getTrafficDistribution(start, end, siteId) {
+                const url = `/get-traffic-distribution/${start}/${end}/${siteId}`;
+                $.get(url, function (res) {
+                    let html = '';
+
+                    html += `
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <i class="fas fa-tachometer-alt"></i> Traffic Distribution Overview
+                            </div>
+                            <div class="card-body">
+                    `;
+
+                    // List APs
+                    if (res.result?.aps?.length) {
+                        html += `<p><i class="fas fa-wifi text-warning"></i> <strong>Access Points:</strong></p><ul>`;
+                        res.result.aps.forEach(ap => {
+                            html += `
+                                <li>
+                                    <strong>${ap.name}</strong> —
+                                    <span class="text-dark">MAC:</span> ${ap.mac},
+                                    <span class="text-dark">Traffic:</span> ${ap.traffic} MB,
+                                    <span class="text-dark">Proportion:</span> ${ap.trafficProportion}%
+                                </li>
+                            `;
+                        });
+                        html += `</ul>`;
+                    }
+
+                    // List Switches
+                    if (res.result?.switches?.length) {
+                        html += `<hr><p><i class="fas fa-network-wired text-primary"></i> <strong>Switches:</strong></p><ul>`;
+                        res.result.switches.forEach(sw => {
+                            html += `
+                                <li>
+                                    <strong>${sw.name}</strong> —
+                                    <span class="text-dark">MAC:</span> ${sw.mac},
+                                    <span class="text-dark">Traffic:</span> ${sw.traffic} MB,
+                                    <span class="text-dark">Proportion:</span> ${sw.trafficProportion}%
+                                </li>
+                            `;
+                        });
+                        html += `</ul>`;
+                    }
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+
+                    $('#trafficDistributionDiv').html(html);
+                    console.log(res);
+                }).fail(err => console.log(err));
+            }
+
+
 
             function getBandwidthUsageApi(start, end, siteId) {
                 const url = `/get-bandwidth-usage-api/${start}/${end}/${siteId}`;
@@ -526,6 +731,9 @@
                         month: 'short',
                         day: '2-digit'
                     });
+
+                    $("#console").html("");
+                    $('#console').append(`> Getting traffic from ${originalStart} to ${originalEnd}... <br>`)
 
                     // Call your function with updated timestamps
                     loadTrafficData(token, startTimestamp, endTimestamp, originalStart, originalEnd);

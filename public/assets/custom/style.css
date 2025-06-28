@@ -24,12 +24,12 @@ body {
     url("https://db.onlinewebfonts.com/t/a81c6ef023e90fb9f87ac017d242a337.svg#Montserrat")format("svg");
 }
 
-h1,h2,h3,h4,h5,h6,p,a,span,td{
+h1,h2,h3,h4,h5,h6,p,a,span,td, b{
     font-family: Poppins !important;
 }
 
 .btn-success, .btn-info, .btn-primary {
-    background: #002222 !important;
+    background: #17468F !important;
     border: none;
 }
 
@@ -48,7 +48,7 @@ h1,h2,h3,h4,h5,h6,p,a,span,td{
 }
 
 .navbar {
-    background-color: #F69639;
+    background-color: #17468F;
 }
 
 .active>.page-link, .page-link.active {
