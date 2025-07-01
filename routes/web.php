@@ -47,9 +47,21 @@ use OwenIt\Auditing\Models\Audit;
 
 // end of import
 
+use App\Http\Controllers\UseraccountsController;
+use App\Models\Useraccounts;
+
+// end of import
+
+use App\Http\Controllers\IncidentsController;
+use App\Models\Incidents;
+
+// end of import
+
+
+
 function deviceToTarget()
 {
-    return "apTrafficActivities";
+    return "switchTrafficActivities";
 }
 
 function deviceToTargets()
@@ -1723,6 +1735,89 @@ Route::middleware([
 
         // Return the view with tickets and the selected date range
         return view('tickets.tickets', compact('tickets', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/useraccounts', [UseraccountsController::class, 'index'])->name('useraccounts.index');
+    Route::get('/create-useraccounts', [UseraccountsController::class, 'create'])->name('useraccounts.create');
+    Route::get('/edit-useraccounts/{useraccountsId}', [UseraccountsController::class, 'edit'])->name('useraccounts.edit');
+    Route::get('/show-useraccounts/{useraccountsId}', [UseraccountsController::class, 'show'])->name('useraccounts.show');
+    Route::get('/delete-useraccounts/{useraccountsId}', [UseraccountsController::class, 'delete'])->name('useraccounts.delete');
+    Route::get('/destroy-useraccounts/{useraccountsId}', [UseraccountsController::class, 'destroy'])->name('useraccounts.destroy');
+    Route::post('/store-useraccounts', [UseraccountsController::class, 'store'])->name('useraccounts.store');
+    Route::post('/update-useraccounts/{useraccountsId}', [UseraccountsController::class, 'update'])->name('useraccounts.update');
+    Route::post('/useraccounts-delete-all-bulk-data', [UseraccountsController::class, 'bulkDelete']);
+    Route::post('/useraccounts-move-to-trash-all-bulk-data', [UseraccountsController::class, 'bulkMoveToTrash']);
+    Route::post('/useraccounts-restore-all-bulk-data', [UseraccountsController::class, 'bulkRestore']);
+    Route::get('/trash-useraccounts', [UseraccountsController::class, 'trash']);
+    Route::get('/restore-useraccounts/{useraccountsId}', [UseraccountsController::class, 'restore'])->name('useraccounts.restore');
+
+    // Useraccounts Search
+    Route::get('/useraccounts-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $useraccounts = Useraccounts::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('useraccounts.useraccounts', compact('useraccounts', 'search'));
+    });
+
+    // Useraccounts Paginate
+    Route::get('/useraccounts-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the useraccounts based on the 'paginate' value
+        $useraccounts = Useraccounts::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated useraccounts
+        return view('useraccounts.useraccounts', compact('useraccounts'));
+    });
+
+    // Useraccounts Filter
+    Route::get('/useraccounts-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for useraccounts
+        $query = Useraccounts::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $useraccounts = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $useraccounts = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $useraccounts = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all useraccounts without filtering
+            $useraccounts = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with useraccounts and the selected date range
+        return view('useraccounts.useraccounts', compact('useraccounts', 'from', 'to'));
     });
 
     // end...

@@ -104,3 +104,13 @@ on Saturday
 
 logging
 connection on another system - confirmation
+
+1. ok - no proportion in the Data distribution
+2. add hidden graph for aps (depende kun pira na ap)
+3. ok (Site Name) Traffic Activities (MBytes)
+4. Manual device disconnect
+5. user logging of events
+6. permission sa console
+7. kbps to mbps - reporting
+8. ok - remove proportion
+9. scheduler

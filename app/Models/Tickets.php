@@ -18,7 +18,8 @@ class Tickets extends Model implements Auditable
         "issue",
         "troubleshooting",
         "status",
-        "isTrash"
+        "isTrash",
+        "ticket_type"
     ];
     use HasFactory;
 

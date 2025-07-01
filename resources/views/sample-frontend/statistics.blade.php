@@ -98,7 +98,7 @@
 
             <div class="p-5">
                 <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
-                <h5>Switch Traffic Activities (MBytes)</h5>
+                <h5>{{ $item->name }} Traffic Activities (MBytes)</h5>
                 <div id="lineChartStatisticsTraffic"></div>
                 <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
                 <div id="lineChartStatisticsTraffic2"></div>
@@ -226,6 +226,12 @@
                         opacity: 0.1
                     }
                 },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val === 0 ? val : ''; // Optional if you're still showing 0 labels elsewhere
+                    }
+                },
                 stroke: { curve: 'smooth' },
                 colors: ["#00C8A8", "#7A91B5"],
                 series: [
@@ -265,6 +271,12 @@
                         left: 1,
                         blur: 3,
                         opacity: 0.1
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val === 0 ? val : ''; // Optional if you're still showing 0 labels elsewhere
                     }
                 },
                 stroke: { curve: 'smooth' },
@@ -371,8 +383,12 @@
                             lastDateStr = dateStr;
 
                             timestamps.push(label);
-                            inbound.push(Number(aggregated[time].tx.toFixed(2)));
-                            outbound.push(Number(aggregated[time].dx.toFixed(2)));
+                            function zeroToNull(val) {
+                                return val === 0 ? null : Number(val.toFixed(2));
+                            }
+
+                            inbound.push(zeroToNull(aggregated[time].tx));
+                            outbound.push(zeroToNull(aggregated[time].dx));
                         });
 
                         // end of switch_traffic_activities =======================================
@@ -417,8 +433,12 @@
                             lastDateStr_apTrafficActivities = dateStr;
 
                             timestamps_apTrafficActivities.push(label);
-                            inbound_apTrafficActivities.push(Number(aggregated_apTrafficActivities[time].tx.toFixed(2)));
-                            outbound_apTrafficActivities.push(Number(aggregated_apTrafficActivities[time].dx.toFixed(2)));
+                            function cleanValue(val) {
+                                return val === 0 ? null : Number(val.toFixed(2));
+                            }
+
+                            inbound_apTrafficActivities.push(cleanValue(aggregated_apTrafficActivities[time].tx));
+                            outbound_apTrafficActivities.push(cleanValue(aggregated_apTrafficActivities[time].dx));
                         });
 
                         // end of ap_traffic_activities =======================================
@@ -489,12 +509,18 @@
                     if (res.result?.aps?.length) {
                         html += `<p><i class="fas fa-wifi text-warning"></i> <strong>Access Points:</strong></p><ul>`;
                         res.result.aps.forEach(ap => {
+                            // html += `
+                            //     <li>
+                            //         <strong>${ap.name}</strong> —
+                            //         <span class="text-dark">MAC:</span> ${ap.mac},
+                            //         <span class="text-dark">Traffic:</span> ${ap.traffic} MB,
+                            //         <span class="text-dark">Proportion:</span> ${ap.trafficProportion}%
+                            //     </li>
+                            // `;
                             html += `
                                 <li>
                                     <strong>${ap.name}</strong> —
-                                    <span class="text-dark">MAC:</span> ${ap.mac},
-                                    <span class="text-dark">Traffic:</span> ${ap.traffic} MB,
-                                    <span class="text-dark">Proportion:</span> ${ap.trafficProportion}%
+                                    <span class="text-dark">MAC:</span> ${ap.mac}
                                 </li>
                             `;
                         });
@@ -505,12 +531,18 @@
                     if (res.result?.switches?.length) {
                         html += `<hr><p><i class="fas fa-network-wired text-primary"></i> <strong>Switches:</strong></p><ul>`;
                         res.result.switches.forEach(sw => {
+                            // html += `
+                            //     <li>
+                            //         <strong>${sw.name}</strong> —
+                            //         <span class="text-dark">MAC:</span> ${sw.mac},
+                            //         <span class="text-dark">Traffic:</span> ${sw.traffic} MB,
+                            //         <span class="text-dark">Proportion:</span> ${sw.trafficProportion}%
+                            //     </li>
+                            // `;
                             html += `
                                 <li>
                                     <strong>${sw.name}</strong> —
-                                    <span class="text-dark">MAC:</span> ${sw.mac},
-                                    <span class="text-dark">Traffic:</span> ${sw.traffic} MB,
-                                    <span class="text-dark">Proportion:</span> ${sw.trafficProportion}%
+                                    <span class="text-dark">MAC:</span> ${sw.mac}
                                 </li>
                             `;
                         });
