@@ -57,6 +57,13 @@ use App\Models\Incidents;
 
 // end of import
 
+use App\Http\Controllers\RestorationsController;
+use App\Models\Restorations;
+use App\Jobs\RestorationMailSender;
+
+// end of import
+
+
 
 
 function deviceToTarget()
@@ -654,6 +661,35 @@ Route::middleware([
                 'error' => $e->getMessage()
             ]);
         }
+    });
+
+    Route::post('/restore-offline-site/{siteId}', function (Request $request, $siteId) {
+        // remove from incidents
+        // add to restored
+
+        $request->validate([
+            'reason' => 'required',
+            'troubleshoot' => 'required',
+        ]);
+
+        Incidents::where('siteId', $siteId)->delete();
+        Restorations::create([
+            'name' => Sites::where('siteId', $siteId)->value('name'),
+            'siteId' => $siteId,
+            'time' => new Datetime(now()),
+            'reason' => $request->reason,
+            'troubleshoot' => $request->troubleshoot,
+        ]);
+
+        RestorationMailSender::dispatch(
+            Sites::where('siteId', $siteId)->value('name'),
+            $siteId,
+            now()->timezone('Asia/Manila')->format('F j, Y \a\t g:i A'),
+            $request->reason,
+            $request->troubleshoot,
+        );
+
+        return back()->with('success', 'Site is restored!');
     });
 
     Route::get('/export-general-data-into-pdf', function (Request $request) {
@@ -1818,6 +1854,172 @@ Route::middleware([
 
         // Return the view with useraccounts and the selected date range
         return view('useraccounts.useraccounts', compact('useraccounts', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/incidents', [IncidentsController::class, 'index'])->name('incidents.index');
+    Route::get('/create-incidents', [IncidentsController::class, 'create'])->name('incidents.create');
+    Route::get('/edit-incidents/{incidentsId}', [IncidentsController::class, 'edit'])->name('incidents.edit');
+    Route::get('/show-incidents/{incidentsId}', [IncidentsController::class, 'show'])->name('incidents.show');
+    Route::get('/delete-incidents/{incidentsId}', [IncidentsController::class, 'delete'])->name('incidents.delete');
+    Route::get('/destroy-incidents/{incidentsId}', [IncidentsController::class, 'destroy'])->name('incidents.destroy');
+    Route::post('/store-incidents', [IncidentsController::class, 'store'])->name('incidents.store');
+    Route::post('/update-incidents/{incidentsId}', [IncidentsController::class, 'update'])->name('incidents.update');
+    Route::post('/incidents-delete-all-bulk-data', [IncidentsController::class, 'bulkDelete']);
+    Route::post('/incidents-move-to-trash-all-bulk-data', [IncidentsController::class, 'bulkMoveToTrash']);
+    Route::post('/incidents-restore-all-bulk-data', [IncidentsController::class, 'bulkRestore']);
+    Route::get('/trash-incidents', [IncidentsController::class, 'trash']);
+    Route::get('/restore-incidents/{incidentsId}', [IncidentsController::class, 'restore'])->name('incidents.restore');
+
+    // Incidents Search
+    Route::get('/incidents-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $incidents = Incidents::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('incidents.incidents', compact('incidents', 'search'));
+    });
+
+    // Incidents Paginate
+    Route::get('/incidents-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the incidents based on the 'paginate' value
+        $incidents = Incidents::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated incidents
+        return view('incidents.incidents', compact('incidents'));
+    });
+
+    // Incidents Filter
+    Route::get('/incidents-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for incidents
+        $query = Incidents::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $incidents = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $incidents = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $incidents = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all incidents without filtering
+            $incidents = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with incidents and the selected date range
+        return view('incidents.incidents', compact('incidents', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/restorations', [RestorationsController::class, 'index'])->name('restorations.index');
+    Route::get('/create-restorations', [RestorationsController::class, 'create'])->name('restorations.create');
+    Route::get('/edit-restorations/{restorationsId}', [RestorationsController::class, 'edit'])->name('restorations.edit');
+    Route::get('/show-restorations/{restorationsId}', [RestorationsController::class, 'show'])->name('restorations.show');
+    Route::get('/delete-restorations/{restorationsId}', [RestorationsController::class, 'delete'])->name('restorations.delete');
+    Route::get('/destroy-restorations/{restorationsId}', [RestorationsController::class, 'destroy'])->name('restorations.destroy');
+    Route::post('/store-restorations', [RestorationsController::class, 'store'])->name('restorations.store');
+    Route::post('/update-restorations/{restorationsId}', [RestorationsController::class, 'update'])->name('restorations.update');
+    Route::post('/restorations-delete-all-bulk-data', [RestorationsController::class, 'bulkDelete']);
+    Route::post('/restorations-move-to-trash-all-bulk-data', [RestorationsController::class, 'bulkMoveToTrash']);
+    Route::post('/restorations-restore-all-bulk-data', [RestorationsController::class, 'bulkRestore']);
+    Route::get('/trash-restorations', [RestorationsController::class, 'trash']);
+    Route::get('/restore-restorations/{restorationsId}', [RestorationsController::class, 'restore'])->name('restorations.restore');
+
+    // Restorations Search
+    Route::get('/restorations-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $restorations = Restorations::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('restorations.restorations', compact('restorations', 'search'));
+    });
+
+    // Restorations Paginate
+    Route::get('/restorations-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the restorations based on the 'paginate' value
+        $restorations = Restorations::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated restorations
+        return view('restorations.restorations', compact('restorations'));
+    });
+
+    // Restorations Filter
+    Route::get('/restorations-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for restorations
+        $query = Restorations::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $restorations = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $restorations = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $restorations = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all restorations without filtering
+            $restorations = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with restorations and the selected date range
+        return view('restorations.restorations', compact('restorations', 'from', 'to'));
     });
 
     // end...

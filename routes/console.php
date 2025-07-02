@@ -522,7 +522,7 @@ function latestAccessTokenCheckerError()
 
 }
 
-Artisan::command('sample', function () {
+Artisan::command('detect-offline-sites', function () {
 
     if (latestAccessTokenCheckerError() === 0) {
 
@@ -539,4 +539,4 @@ Artisan::command('sample', function () {
 
         $this->info('has new api token');
     }
-})->purpose('Sync data.')->everyMinute();
+})->purpose('Offline Detection.')->everyMinute();

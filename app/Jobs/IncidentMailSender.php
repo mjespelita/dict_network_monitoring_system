@@ -33,13 +33,24 @@ class IncidentMailSender implements ShouldQueue
 
             foreach ($this->final_list_of_offline_sites as $key => $offlineSite) {
 
-                // $incidents = Incidents::
+                $incidentAlreadyReported = Incidents::where('siteId', $offlineSite['siteId'])->count();
 
-                Mail::to($user->email)->send(new IncidentMailer(
-                    $offlineSite['name'],
-                    $offlineSite['siteId'],
-                    $offlineSite['time'],
-                ));
+                if ($incidentAlreadyReported === 0) {
+
+                    Incidents::create([
+                        'name' => $offlineSite['name'],
+                        'siteId' => $offlineSite['siteId'],
+                        'time' => $offlineSite['time'],
+                    ]);
+
+                    Mail::to($user->email)->send(new IncidentMailer(
+                        $offlineSite['name'],
+                        $offlineSite['siteId'],
+                        $offlineSite['time'],
+                    ));
+
+                }
+
             }
         }
     }
