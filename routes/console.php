@@ -481,8 +481,8 @@ function incidentMailerSender()
         foreach ($site['main_data'] as $entry) {
             if (
                 isset($entry['txData'], $entry['dxData'], $entry['time']) &&
-                $entry['txData'] != 0.0 &&
-                $entry['dxData'] != 0.0
+                $entry['txData'] === 0.0 &&
+                $entry['dxData'] === 0.0
             ) {
                 // Compare times
                 if (!$latestEntry || $entry['time'] > $latestEntry['time']) {
