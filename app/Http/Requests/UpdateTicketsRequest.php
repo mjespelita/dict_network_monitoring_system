@@ -23,7 +23,14 @@ class UpdateTicketsRequest extends FormRequest
     {
         return [
             //
-'sites_id' => 'required','ticket_number' => 'required','date_reported' => 'required','name' => 'required','address' => 'required','nearest_landmark' => 'required','issue' => 'required','troubleshooting' => 'required',
+            'sites_id' => 'required',
+            'date_reported' => 'required',
+            'name' => 'required',
+            'ticket_type' => 'required',
+            'address' => 'required',
+            'nearest_landmark' => 'required',
+            'issue' => 'required',
+            'troubleshooting' => 'required',
         ];
     }
 }

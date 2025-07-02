@@ -54,22 +54,26 @@ class TicketsController extends Controller {
     public function store(StoreTicketsRequest $request)
     {
 
-        // Get the latest ticket for the given site
-        $latestTicket = Tickets::where('ticket_number', 'like', 'TCKT' . $request->sites_id . '_%')
+        $ticketType = strtoupper($request->ticket_type); // Ensure uppercase: IR, SR, CR
+
+        // Get the latest ticket for the specific type (e.g., IR_00001)
+        $latestTicket = Tickets::where('ticket_number', 'like', $ticketType . '_%')
             ->orderByDesc('id')
             ->first();
 
-        // Determine the next number
-        $nextNumber = 1; // default if no existing ticket
+        // Default to 1 if no previous ticket
+        $nextNumber = 1;
         if ($latestTicket && preg_match('/_(\d+)$/', $latestTicket->ticket_number, $matches)) {
             $nextNumber = intval($matches[1]) + 1;
         }
 
-        // Format the new ticket number with 5-digit padding
-        $ticketNumber = 'TCKT_' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+        // Format ticket number: e.g., IR_00001, SR_00124
+        $ticketNumber = $ticketType . '_' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
+        // Create the ticket
         Tickets::create([
             'sites_id' => $request->sites_id,
+            'ticket_type' => $ticketType,
             'ticket_number' => $ticketNumber,
             'date_reported' => $request->date_reported,
             'name' => $request->name,
@@ -93,10 +97,6 @@ class TicketsController extends Controller {
             //     $request->troubleshooting
             // ));
         }
-
-        /* Log ************************************************** */
-        // Logs::create(['log' => Auth::user()->name.' created a new Tickets '.'"'.$request->name.'"']);
-        /******************************************************** */
 
         return back()->with('success', 'Tickets Added Successfully!');
     }
@@ -143,10 +143,27 @@ class TicketsController extends Controller {
         //     'status' => $request->status
         // ]);
 
+        $ticketType = strtoupper($request->ticket_type); // Ensure uppercase: IR, SR, CR
+
+        // Get the latest ticket for the specific type (e.g., IR_00001)
+        $latestTicket = Tickets::where('ticket_number', 'like', $ticketType . '_%')
+            ->orderByDesc('id')
+            ->first();
+
+        // Default to 1 if no previous ticket
+        $nextNumber = 1;
+        if ($latestTicket && preg_match('/_(\d+)$/', $latestTicket->ticket_number, $matches)) {
+            $nextNumber = intval($matches[1]) + 1;
+        }
+
+        // Format ticket number: e.g., IR_00001, SR_00124
+        $ticketNumber = $ticketType . '_' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+
         $ticket = Tickets::findOrFail($ticketsId);
 
         $ticket->sites_id = $request->sites_id;
-        $ticket->ticket_number = $request->ticket_number;
+        $ticket->ticket_type = $ticketType;
+        $ticket->ticket_number = $ticketNumber;
         $ticket->date_reported = $request->date_reported;
         $ticket->name = $request->name;
         $ticket->address = $request->address;

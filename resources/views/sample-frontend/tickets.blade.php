@@ -33,7 +33,6 @@
                                 </div>
 
                                 @php
-                                    $ticketNumber = 'TCKT' . substr($item->siteId, 0, 4) .'_'. substr(time(), -4);
                                     $dateReported = date('Y-m-d');
                                 @endphp
 
@@ -43,14 +42,8 @@
                                     </div>
                                     <div class="card-body">
                                         <b class="card-title mb-2">Site Name: {{ $item->name }}</b> <br>
-                                        <b class="card-title mb-2">Ticket Number: {{ $ticketNumber }}</b> <br>
                                         <b class="card-title">Date Reported: {{ Smark\Smark\Dater::humanReadableDateWithDay($dateReported) }}</b>
                                     </div>
-                                </div>
-
-                                <div class='form-group'>
-                                    {{-- <label for='name'>Ticket Number</label> --}}
-                                    <input type='text' class='form-control' id='ticket_number' hidden name='ticket_number' value="{{ $ticketNumber }}" required>
                                 </div>
 
                                 <div class='form-group'>
@@ -61,6 +54,15 @@
                                 <div class='form-group'>
                                     {{-- <label for='name'>Name</label> --}}
                                     <input type='text' class='form-control' hidden value="{{ $item->name }}" id='name' name='name' required>
+                                </div>
+
+                                <div class='form-group'>
+                                    <label for='name'>Ticket Type</label>
+                                    <select class="form-control" name="ticket_type">
+                                        <option value="ir">Incident Response</option>
+                                        <option value="sr">Service Request</option>
+                                        <option value="cr">Change Request</option>
+                                    </select>
                                 </div>
 
                                 <div class='form-group'>
@@ -116,14 +118,8 @@
                                     </div>
                                     <div class="card-body">
                                         <b class="card-title mb-2">Site Name: {{ $item->name }}</b> <br>
-                                        <b class="card-title mb-2">Ticket Number: {{ $ticketNumber }}</b> <br>
                                         <b class="card-title">Date Reported: {{ Smark\Smark\Dater::humanReadableDateWithDay($dateReported) }}</b>
                                     </div>
-                                </div>
-
-                                <div class='form-group'>
-                                    {{-- <label for='name'>Ticket Number</label> --}}
-                                    <input type='text' class='form-control' id='ticket_number' hidden name='ticket_number' value="" required>
                                 </div>
 
                                 <div class='form-group'>
@@ -134,6 +130,15 @@
                                 <div class='form-group'>
                                     {{-- <label for='name'>Name</label> --}}
                                     <input type='text' class='form-control' hidden value="" id='name' name='name' required>
+                                </div>
+
+                                <div class='form-group'>
+                                    <label for='name'>Ticket Type</label>
+                                    <select class="form-control" name="ticket_type">
+                                        <option value="ir">Incident Response</option>
+                                        <option value="sr">Service Request</option>
+                                        <option value="cr">Change Request</option>
+                                    </select>
                                 </div>
 
                                 <div class='form-group'>
@@ -184,6 +189,7 @@
                     <thead>
                         <tr>
                             <th>Ticket Number</th>
+                            <th>Ticket Type</th>
                             <th>Date Reported</th>
                             <th>Site Name</th>
                             <th>Address</th>
@@ -237,9 +243,23 @@
                 }
 
                 pageData.forEach(ticket => {
+
+                    if (ticket.ticket_type === 'IR') {
+                        ticket.ticket_type = 'Incident Response'
+                    }
+
+                    if (ticket.ticket_type === 'SR') {
+                        ticket.ticket_type = 'Service Request'
+                    }
+
+                    if (ticket.ticket_type === 'CR') {
+                        ticket.ticket_type = 'Change Request'
+                    }
+
                     const row = `
                         <tr>
                             <td>${ticket.ticket_number}</td>
+                            <td>${ticket.ticket_type}</td>
                             <td>${ticket.date_reported}</td>
                             <td>${ticket.name}</td>
                             <td>${ticket.address}</td>
