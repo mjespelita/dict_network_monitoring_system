@@ -9,25 +9,20 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RestorationMailer extends Mailable
+class ReportIncidentMailer extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
     public $name;
-    public $ticket_number;
     public $siteId;
-    public $dateAndTime;
+    public $time;
     public $reason;
     public $troubleshoot;
-    public function __construct($name, $ticket_number, $siteId, $dateAndTime, $reason, $troubleshoot)
+    public function __construct($name, $siteId, $time, $reason, $troubleshoot)
     {
         $this->name = $name;
-        $this->ticket_number = $ticket_number;
         $this->siteId = $siteId;
-        $this->dateAndTime = $dateAndTime;
+        $this->time = $time;
         $this->reason = $reason;
         $this->troubleshoot = $troubleshoot;
     }
@@ -38,7 +33,7 @@ class RestorationMailer extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Restoration Mailer',
+            subject: 'Report Incident Mailer',
         );
     }
 
@@ -48,7 +43,7 @@ class RestorationMailer extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mail.restoration-mailer',
+            view: 'mail.report-incident-mailer',
         );
     }
 

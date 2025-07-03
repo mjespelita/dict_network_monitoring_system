@@ -29,6 +29,7 @@
             <select name="role" class="form-control" id="" required>
                 <option value="admin">Admin</option>
                 <option value="admin">User</option>
+                <option value="dict">DICT RO8 Representative</option>
             </select>
             {{-- <input type='text' class='form-control' id='role' name='role' required> --}}
         </div>

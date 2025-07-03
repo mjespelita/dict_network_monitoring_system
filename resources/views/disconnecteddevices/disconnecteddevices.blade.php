@@ -4,11 +4,11 @@
 @section('content')
     <div class='row'>
         <div class='col-lg-6 col-md-6 col-sm-12'>
-            <h1>Offline</h1>
+            <h1>All Disconnecteddevices</h1>
         </div>
         <div class='col-lg-6 col-md-6 col-sm-12' style='text-align: right;'>
-            {{-- <a href='{{ url('trash-incidents') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Incidents::where('isTrash', '1')->count() }}</span></button></a>
-            <a href='{{ route('incidents.create') }}'><button class='btn btn-success'><i class='fas fa-plus'></i> Add Incidents</button></a> --}}
+            <a href='{{ url('trash-disconnecteddevices') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Disconnecteddevices::where('isTrash', '1')->count() }}</span></button></a>
+            <a href='{{ route('disconnecteddevices.create') }}'><button class='btn btn-success'><i class='fas fa-plus'></i> Add Disconnecteddevices</button></a>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
                             </div> --}}
                         </div>
                         <div class='col-8'>
-                            <form action='{{ url('/incidents-paginate') }}' method='get'>
+                            <form action='{{ url('/disconnecteddevices-paginate') }}' method='get'>
                                 <div class='input-group'>
                                     <input type='number' name='paginate' class='form-control' placeholder='Paginate' value='{{ request()->get('paginate', 10) }}'>
                                     <div class='input-group-append'>
@@ -44,7 +44,7 @@
                     </div>
                 </div>
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
-                    <form action='{{ url('/incidents-filter') }}' method='get'>
+                    <form action='{{ url('/disconnecteddevices-filter') }}' method='get'>
                         <div class='input-group'>
                             <input type='date' class='form-control' id='from' name='from' required>
                             <b class='pt-2'>- to -</b>
@@ -58,7 +58,7 @@
                 </div>
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
                     <!-- Search Form -->
-                    <form action='{{ url('/incidents-search') }}' method='GET'>
+                    <form action='{{ url('/disconnecteddevices-search') }}' method='GET'>
                         <div class='input-group'>
                             <input type='text' name='search' value='{{ request()->get('search') }}' class='form-control' placeholder='Search...'>
                             <div class='input-group-append'>
@@ -73,59 +73,57 @@
                 <table class='table table-striped'>
                     <thead>
                         <tr>
-                            {{-- <th scope='col'>
-                            <input type='checkbox' name='' id='' class='checkAll'>
-                            </th> --}}
                             <th>Status</th>
-                            <th>Name</th>
-                            <th>SiteId</th>
                             <th>Reported</th>
+                            <th>Name</th>
+                            <th>Device Name</th>
+                            <th>Device Mac</th>
+                            <th>Device Type</th>
                             <th>Detected At</th>
-                            <th>Recorded At</th>
-                            {{-- <th>Actions</th> --}}
+                            {{-- <th></th> --}}
                         </tr>
                     </thead>
 
                     <tbody>
-                        @forelse($incidents as $item)
+                        @forelse($disconnecteddevices as $item)
                             <tr>
-                                {{-- <th scope='row'>
-                                    <input type='checkbox' name='' id='' class='check' data-id='{{ $item->id }}'>
-                                </th> --}}
                                 <td class="fw-bold text-danger">
-                                    <i class="fas fa-ban text-danger"></i> OFFLINE
-                                </td>
-                                <td class="fw-bold text-danger">
-                                    {{ $item->name }}
-                                </td>
-                                <td class="fw-bold text-danger">
-                                    {{ $item->siteId }}
+                                    <i class="fas fa-plug text-danger"></i> DISCONNECTED
                                 </td>
                                 <td class="fw-bold {{ $item->isReported ? 'text-success' : 'text-danger' }}">
                                     {{ $item->isReported ? 'Yes' : 'No' }}
                                 </td>
                                 <td class="fw-bold text-danger">
-                                    {{ $item->time }}
+                                    {{ $item->name }}
+                                </td class="fw-bold text-danger">
+                                <td class="fw-bold text-danger">
+                                    {{ $item->device_name }}
                                 </td>
-                                <td>
+                                <td class="fw-bold text-danger">
+                                    {{ $item->device_mac }}
+                                </td>
+                                <td class="fw-bold text-danger">
+                                    {{ $item->device_type }}
+                                </td>
+                                <td class="fw-bold text-danger">
                                     {{ Smark\Smark\Dater::humanReadableDateWithDayAndTime($item->created_at) }}
                                 </td>
                                 <td>
-                                    {{-- <a href='{{ route('incidents.show', $item->id) }}'><i class='fas fa-eye text-success'></i></a> --}}
-                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#reportOffline{{ $item->siteId }}"><i class='fas fa-share text-info'></i> Submit A Report</a>
-                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#restoreOffline{{ $item->siteId }}"><i class='fas fa-recycle text-success'></i> Restore</a>
-                                    {{-- <a href='{{ route('incidents.delete', $item->id) }}'><i class='fas fa-trash text-danger'></i></a> --}}
+                                    {{-- <a href='{{ route('disconnecteddevices.show', $item->id) }}'><i class='fas fa-eye text-success'></i></a> --}}
+                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#reportDisconnectedDevice{{ $item->siteId }}"><i class='fas fa-share text-info'></i> Submit A Report</a>
+                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#restoreDisconnectedDevice{{ $item->siteId }}"><i class='fas fa-recycle text-success'></i> Restore</a>
+                                    {{-- <a href='{{ route('disconnecteddevices.delete', $item->id) }}'><i class='fas fa-trash text-danger'></i></a> --}}
 
                                     <!-- Modal -->
-                                    <div class="modal fade" id="restoreOffline{{ $item->siteId }}" tabindex="-1" aria-labelledby="offlineSiteModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="restoreDisconnectedDevice{{ $item->siteId }}" tabindex="-1" aria-labelledby="offlineSiteModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
                                             <div class="modal-header bg-danger text-white">
-                                                <h5 class="modal-title" id="offlineSiteModalLabel">🚨 Restore - {{ $item->name }}</h5>
+                                                <h5 class="modal-title" id="offlineSiteModalLabel">🚨 Restore - {{ $item->device_name }}</h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form action="{{ url('restore-offline-site/'.$item->siteId) }}" method="post">
+                                                <form action="{{ url('restore-disconnected-device/'.$item->siteId) }}" method="post">
                                                     <div class="form-group">
                                                         <label for="">Ticket Number</label>
                                                         <input type="text" class="form-control" name="ticket_number">
@@ -152,15 +150,15 @@
                                     </div>
 
                                     <!-- Modal -->
-                                    <div class="modal fade" id="reportOffline{{ $item->siteId }}" tabindex="-1" aria-labelledby="offlineSiteModalLabel" aria-hidden="true">
+                                    <div class="modal fade" id="reportDisconnectedDevice{{ $item->siteId }}" tabindex="-1" aria-labelledby="offlineSiteModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
                                             <div class="modal-header bg-danger text-white">
-                                                <h5 class="modal-title" id="offlineSiteModalLabel">🚨 Submit A Report - {{ $item->name }}</h5>
+                                                <h5 class="modal-title" id="offlineSiteModalLabel">🚨 Submit A Report - {{ $item->device_name }}</h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <div class="modal-body">
-                                                <form action="{{ url('report-offline-site/'.$item->siteId) }}" method="post">
+                                                <form action="{{ url('report-disconnected-device/'.$item->siteId) }}" method="post">
                                                     <div class="form-group">
                                                         <label for="">Reason</label>
                                                         <input type="text" class="form-control" name="reason">
@@ -195,7 +193,7 @@
         </div>
     </div>
 
-    {{ $incidents->links('pagination::bootstrap-5') }}
+    {{ $disconnecteddevices->links('pagination::bootstrap-5') }}
 
     <script src='{{ url('assets/jquery/jquery.min.js') }}'></script>
     <script>
@@ -216,7 +214,7 @@
                     array.push($(this).attr('data-id'));
                 });
 
-                $.post('/incidents-delete-all-bulk-data', {
+                $.post('/disconnecteddevices-delete-all-bulk-data', {
                     ids: array,
                     _token: $("meta[name='csrf-token']").attr('content')
                 }, function (res) {
@@ -230,7 +228,7 @@
                     array.push($(this).attr('data-id'));
                 });
 
-                $.post('/incidents-move-to-trash-all-bulk-data', {
+                $.post('/disconnecteddevices-move-to-trash-all-bulk-data', {
                     ids: array,
                     _token: $("meta[name='csrf-token']").attr('content')
                 }, function (res) {

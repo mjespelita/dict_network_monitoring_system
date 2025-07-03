@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RestorationMailer extends Mailable
+class RestoredDeviceIncidentMailer extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -17,17 +17,33 @@ class RestorationMailer extends Mailable
      * Create a new message instance.
      */
     public $name;
-    public $ticket_number;
+    public $deviceName;
+    public $deviceMac;
+    public $deviceType;
+    public $status;
     public $siteId;
-    public $dateAndTime;
+    public $ticket_number;
     public $reason;
     public $troubleshoot;
-    public function __construct($name, $ticket_number, $siteId, $dateAndTime, $reason, $troubleshoot)
+    public function __construct(
+        $name,
+        $deviceName,
+        $deviceMac,
+        $deviceType,
+        $status,
+        $siteId,
+        $ticket_number,
+        $reason,
+        $troubleshoot
+    )
     {
         $this->name = $name;
-        $this->ticket_number = $ticket_number;
+        $this->deviceName = $deviceName;
+        $this->deviceMac = $deviceMac;
+        $this->deviceType = $deviceType;
+        $this->status = $status;
         $this->siteId = $siteId;
-        $this->dateAndTime = $dateAndTime;
+        $this->ticket_number = $ticket_number;
         $this->reason = $reason;
         $this->troubleshoot = $troubleshoot;
     }
@@ -38,7 +54,7 @@ class RestorationMailer extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Restoration Mailer',
+            subject: 'Restored Device Incident Mailer',
         );
     }
 
@@ -48,7 +64,7 @@ class RestorationMailer extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mail.restoration-mailer',
+            view: 'mail.restored-device-incident-mailer',
         );
     }
 

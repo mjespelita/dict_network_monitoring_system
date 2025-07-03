@@ -9,8 +9,11 @@ use Carbon\Carbon;
 use App\Http\Controllers\LogsController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\AuthMiddleware;
+use App\Http\Middleware\DICTMiddleware;
 use App\Models\Logs;
 use Smark\Smark\Cache;
+
+use Illuminate\Support\Facades\Artisan;
 
 // end of import
 
@@ -60,8 +63,23 @@ use App\Models\Incidents;
 use App\Http\Controllers\RestorationsController;
 use App\Models\Restorations;
 use App\Jobs\RestorationMailSender;
+use App\Jobs\RestoredDeviceIncidentMailSender;
+use App\Jobs\ReportIncidentMailSender;
+use App\Jobs\ReportDisconnectedDeviceMailSender;
 
 // end of import
+
+use App\Http\Controllers\DisconnecteddevicesController;
+use App\Models\Disconnecteddevices;
+
+// end of import
+
+use App\Http\Controllers\RestoreddevicesController;
+use App\Models\Restoreddevices;
+
+// end of import
+
+
 
 
 
@@ -173,6 +191,7 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard')->middleware(AuthMiddleware::class);
@@ -180,6 +199,10 @@ Route::middleware([
     Route::get('/admin-dashboard', function () {
         return view('admin-dashboard');
     })->middleware(AdminMiddleware::class);
+
+    Route::get('/dict-dashboard', function () {
+        return view('dict-dashboard');
+    })->middleware(DICTMiddleware::class);
 
     Route::get('/proxy', function () {
         $response = Http::withHeaders([
@@ -670,11 +693,13 @@ Route::middleware([
         $request->validate([
             'reason' => 'required',
             'troubleshoot' => 'required',
+            'ticket_number' => '',
         ]);
 
         Incidents::where('siteId', $siteId)->delete();
         Restorations::create([
             'name' => Sites::where('siteId', $siteId)->value('name'),
+            'ticket_number' => $request->ticket_number,
             'siteId' => $siteId,
             'time' => new Datetime(now()),
             'reason' => $request->reason,
@@ -683,6 +708,7 @@ Route::middleware([
 
         RestorationMailSender::dispatch(
             Sites::where('siteId', $siteId)->value('name'),
+            $request->ticket_number,
             $siteId,
             now()->timezone('Asia/Manila')->format('F j, Y \a\t g:i A'),
             $request->reason,
@@ -690,6 +716,103 @@ Route::middleware([
         );
 
         return back()->with('success', 'Site is restored!');
+    });
+
+    Route::post('/report-offline-site/{siteId}', function (Request $request, $siteId) {
+        // remove from incidents
+        // add to restored
+
+        $request->validate([
+            'reason' => 'required',
+            'troubleshoot' => 'required',
+        ]);
+
+        Incidents::where('siteId', $siteId)->update([
+            'isReported' => 1
+        ]);
+
+        ReportIncidentMailSender::dispatch(
+            Sites::where('siteId', $siteId)->value('name'),
+            $siteId,
+            now()->timezone('Asia/Manila')->format('F j, Y \a\t g:i A'),
+            $request->reason,
+            $request->troubleshoot,
+        );
+
+        return back()->with('success', 'Site issue is reported!');
+    });
+
+    Route::post('/restore-disconnected-device/{siteId}', function (Request $request, $siteId) {
+        // remove from incidents
+        // add to restored
+
+        $request->validate([
+            'reason' => 'required',
+            'troubleshoot' => 'required',
+            'ticket_number' => '',
+        ]);
+
+        $deviceName = Disconnecteddevices::where('siteId', $siteId)->value('device_name');
+        $deviceMac = Disconnecteddevices::where('siteId', $siteId)->value('device_mac');
+        $deviceType = Disconnecteddevices::where('siteId', $siteId)->value('device_type');
+
+        Disconnecteddevices::where('siteId', $siteId)->delete();
+        Restoreddevices::create([
+            'name' => Sites::where('siteId', $siteId)->value('name'),
+            'device_name' => $deviceName,
+            'device_mac' => $deviceMac,
+            'device_type' => $deviceType,
+            'status' => 'online',
+            'siteId' => $siteId,
+            'ticket_number' => $request->ticket_number,
+            'reason' => $request->reason,
+            'troubleshoot' => $request->troubleshoot,
+        ]);
+
+        RestoredDeviceIncidentMailSender::dispatch(
+            Sites::where('siteId', $siteId)->value('name'),
+            $deviceName,
+            $deviceMac,
+            $deviceType,
+            'online',
+            $siteId,
+            $request->ticket_number,
+            $request->reason,
+            $request->troubleshoot,
+        );
+
+        return back()->with('success', 'Device is connected!');
+    });
+
+    Route::post('/report-disconnected-device/{siteId}', function (Request $request, $siteId) {
+        // remove from incidents
+        // add to restored
+
+        $request->validate([
+            'reason' => 'required',
+            'troubleshoot' => 'required',
+        ]);
+
+        $deviceName = Disconnecteddevices::where('siteId', $siteId)->value('device_name');
+        $deviceMac = Disconnecteddevices::where('siteId', $siteId)->value('device_mac');
+        $deviceType = Disconnecteddevices::where('siteId', $siteId)->value('device_type');
+
+        Disconnecteddevices::where('siteId', $siteId)->update([
+            'isReported' => 1
+        ]);
+
+        ReportDisconnectedDeviceMailSender::dispatch(
+            Sites::where('siteId', $siteId)->value('name'),
+            $deviceName,
+            $deviceMac,
+            $deviceType,
+            'offline',
+            $siteId,
+            $request->reason,
+            $request->troubleshoot,
+        );
+
+        return back()->with('success', 'Device issue is reported!');
     });
 
     Route::get('/export-general-data-into-pdf', function (Request $request) {
@@ -2020,6 +2143,172 @@ Route::middleware([
 
         // Return the view with restorations and the selected date range
         return view('restorations.restorations', compact('restorations', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/disconnecteddevices', [DisconnecteddevicesController::class, 'index'])->name('disconnecteddevices.index');
+    Route::get('/create-disconnecteddevices', [DisconnecteddevicesController::class, 'create'])->name('disconnecteddevices.create');
+    Route::get('/edit-disconnecteddevices/{disconnecteddevicesId}', [DisconnecteddevicesController::class, 'edit'])->name('disconnecteddevices.edit');
+    Route::get('/show-disconnecteddevices/{disconnecteddevicesId}', [DisconnecteddevicesController::class, 'show'])->name('disconnecteddevices.show');
+    Route::get('/delete-disconnecteddevices/{disconnecteddevicesId}', [DisconnecteddevicesController::class, 'delete'])->name('disconnecteddevices.delete');
+    Route::get('/destroy-disconnecteddevices/{disconnecteddevicesId}', [DisconnecteddevicesController::class, 'destroy'])->name('disconnecteddevices.destroy');
+    Route::post('/store-disconnecteddevices', [DisconnecteddevicesController::class, 'store'])->name('disconnecteddevices.store');
+    Route::post('/update-disconnecteddevices/{disconnecteddevicesId}', [DisconnecteddevicesController::class, 'update'])->name('disconnecteddevices.update');
+    Route::post('/disconnecteddevices-delete-all-bulk-data', [DisconnecteddevicesController::class, 'bulkDelete']);
+    Route::post('/disconnecteddevices-move-to-trash-all-bulk-data', [DisconnecteddevicesController::class, 'bulkMoveToTrash']);
+    Route::post('/disconnecteddevices-restore-all-bulk-data', [DisconnecteddevicesController::class, 'bulkRestore']);
+    Route::get('/trash-disconnecteddevices', [DisconnecteddevicesController::class, 'trash']);
+    Route::get('/restore-disconnecteddevices/{disconnecteddevicesId}', [DisconnecteddevicesController::class, 'restore'])->name('disconnecteddevices.restore');
+
+    // Disconnecteddevices Search
+    Route::get('/disconnecteddevices-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $disconnecteddevices = Disconnecteddevices::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('disconnecteddevices.disconnecteddevices', compact('disconnecteddevices', 'search'));
+    });
+
+    // Disconnecteddevices Paginate
+    Route::get('/disconnecteddevices-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the disconnecteddevices based on the 'paginate' value
+        $disconnecteddevices = Disconnecteddevices::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated disconnecteddevices
+        return view('disconnecteddevices.disconnecteddevices', compact('disconnecteddevices'));
+    });
+
+    // Disconnecteddevices Filter
+    Route::get('/disconnecteddevices-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for disconnecteddevices
+        $query = Disconnecteddevices::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $disconnecteddevices = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $disconnecteddevices = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $disconnecteddevices = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all disconnecteddevices without filtering
+            $disconnecteddevices = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with disconnecteddevices and the selected date range
+        return view('disconnecteddevices.disconnecteddevices', compact('disconnecteddevices', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/restoreddevices', [RestoreddevicesController::class, 'index'])->name('restoreddevices.index');
+    Route::get('/create-restoreddevices', [RestoreddevicesController::class, 'create'])->name('restoreddevices.create');
+    Route::get('/edit-restoreddevices/{restoreddevicesId}', [RestoreddevicesController::class, 'edit'])->name('restoreddevices.edit');
+    Route::get('/show-restoreddevices/{restoreddevicesId}', [RestoreddevicesController::class, 'show'])->name('restoreddevices.show');
+    Route::get('/delete-restoreddevices/{restoreddevicesId}', [RestoreddevicesController::class, 'delete'])->name('restoreddevices.delete');
+    Route::get('/destroy-restoreddevices/{restoreddevicesId}', [RestoreddevicesController::class, 'destroy'])->name('restoreddevices.destroy');
+    Route::post('/store-restoreddevices', [RestoreddevicesController::class, 'store'])->name('restoreddevices.store');
+    Route::post('/update-restoreddevices/{restoreddevicesId}', [RestoreddevicesController::class, 'update'])->name('restoreddevices.update');
+    Route::post('/restoreddevices-delete-all-bulk-data', [RestoreddevicesController::class, 'bulkDelete']);
+    Route::post('/restoreddevices-move-to-trash-all-bulk-data', [RestoreddevicesController::class, 'bulkMoveToTrash']);
+    Route::post('/restoreddevices-restore-all-bulk-data', [RestoreddevicesController::class, 'bulkRestore']);
+    Route::get('/trash-restoreddevices', [RestoreddevicesController::class, 'trash']);
+    Route::get('/restore-restoreddevices/{restoreddevicesId}', [RestoreddevicesController::class, 'restore'])->name('restoreddevices.restore');
+
+    // Restoreddevices Search
+    Route::get('/restoreddevices-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $restoreddevices = Restoreddevices::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('restoreddevices.restoreddevices', compact('restoreddevices', 'search'));
+    });
+
+    // Restoreddevices Paginate
+    Route::get('/restoreddevices-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the restoreddevices based on the 'paginate' value
+        $restoreddevices = Restoreddevices::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated restoreddevices
+        return view('restoreddevices.restoreddevices', compact('restoreddevices'));
+    });
+
+    // Restoreddevices Filter
+    Route::get('/restoreddevices-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for restoreddevices
+        $query = Restoreddevices::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $restoreddevices = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $restoreddevices = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $restoreddevices = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all restoreddevices without filtering
+            $restoreddevices = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with restoreddevices and the selected date range
+        return view('restoreddevices.restoreddevices', compact('restoreddevices', 'from', 'to'));
     });
 
     // end...

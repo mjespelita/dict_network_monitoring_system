@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\DisconnectedDeviceIncidentMailSender;
 use App\Jobs\IncidentMailSender;
 use App\Mail\IncidentMailer;
 use App\Mail\TicketMail;
@@ -8,6 +9,7 @@ use App\Models\Customers;
 use App\Models\Logs;
 use App\Models\Sites;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
@@ -436,6 +438,7 @@ function incidentMailerSender()
             if ($device['status'] === 0) {
                 $FINAL_OFFLINE_DEVICES[] = [
                     'site' => $site['site'],
+                    'siteId' => $site['siteId'],
                     'device' => [
                         'name' => $device['name'],
                         'mac' => $device['mac'],
@@ -506,6 +509,7 @@ function incidentMailerSender()
     // $FINAL_OFFLINE_DEVICES
 
     IncidentMailSender::dispatch($FINAL_LIST_OF_OFFLINE_SITES);
+    DisconnectedDeviceIncidentMailSender::dispatch($FINAL_OFFLINE_DEVICES);
 
     return "Offline Notification Sent!";
 }
@@ -521,22 +525,30 @@ function latestAccessTokenCheckerError()
     return $response['errorCode'];
 
 }
-
 Artisan::command('detect-offline-sites', function () {
 
-    if (latestAccessTokenCheckerError() === 0) {
+    $currentTime = now();
 
-        dd(incidentMailerSender());
+    // Allow execution only between 5:00 AM and 6:00 PM
+    if ($currentTime->between(Carbon::createFromTime(5, 0), Carbon::createFromTime(18, 0))) {
 
-        $this->info('no new api token');
+        if (latestAccessTokenCheckerError() === 0) {
+
+            dd(incidentMailerSender());
+
+            $this->info('no new api token');
+
+        } else {
+
+            createNewAPITokenAlgo();
+
+            dd(incidentMailerSender());
+
+            $this->info('has new api token');
+        }
 
     } else {
-
-        // if expired
-        createNewAPITokenAlgo();
-
-        dd(incidentMailerSender());
-
-        $this->info('has new api token');
+        $this->info('Command not allowed outside 5:00 AM to 6:00 PM.');
     }
+
 })->purpose('Offline Detection.')->everyMinute();

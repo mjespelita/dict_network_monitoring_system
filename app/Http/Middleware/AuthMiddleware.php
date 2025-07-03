@@ -23,6 +23,10 @@ class AuthMiddleware
         if (Auth::user()->role === 'staff') {
             return redirect('/staff-dashboard');
         }
+
+        if (Auth::user()->role === 'dict') {
+            return redirect('/dict-dashboard');
+        }
         return $next($request);
     }
 }

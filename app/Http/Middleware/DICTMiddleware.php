@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class DICTMiddleware
 {
     /**
      * Handle an incoming request.
@@ -16,13 +16,14 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (Auth::user()->role === 'admin') {
+            return redirect('/admin-dashboard');
+        }
+
         if (Auth::user()->role === 'staff') {
             return redirect('/staff-dashboard');
         }
 
-        if (Auth::user()->role === 'dict') {
-            return redirect('/dict-dashboard');
-        }
         return $next($request);
     }
 }

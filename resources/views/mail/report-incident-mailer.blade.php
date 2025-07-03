@@ -2,31 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Site Restoration Notice</title>
+  <title>Site Incident Report</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #e6f4ea;
-      color: #2d4739;
+      background-color: #fff8e6;
+      color: #5a3e00;
       padding: 20px;
       line-height: 1.6;
     }
     .email-container {
       background-color: #ffffff;
       padding: 20px;
-      border: 1px solid #d4edda;
+      border: 1px solid #ffeeba;
       border-radius: 5px;
       max-width: 600px;
       margin: auto;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     h2 {
-      color: #28a745;
+      color: #d39e00;
     }
     .details {
-      background-color: #f0fdf4;
+      background-color: #fff3cd;
       padding: 10px 15px;
-      border-left: 5px solid #28a745;
+      border-left: 5px solid #ffc107;
       border-radius: 4px;
       margin-top: 10px;
     }
@@ -40,22 +40,20 @@
 </head>
 <body>
   <div class="email-container">
-    <h2>✅ Site Restored Successfully</h2>
+    <h2>⚠️ Site Incident Report</h2>
     <p>Hello,</p>
-    <p>We’re happy to inform you that one of your monitored sites has successfully <strong>come back online</strong>.</p>
+    <p>This is to inform you that one of your monitored sites is currently experiencing issues. Please review the details below:</p>
 
     <div class="details">
       <p><strong>Site Name:</strong> {{ $name }}</p>
-      <p><strong>Ticket Number:</strong> {{ $ticket_number }}</p>
       <p><strong>Site ID:</strong> {{ $siteId }}</p>
-      <p><strong>Restoration Time:</strong> {{ $dateAndTime }}</p>
-      <p><strong>Reason:</strong> {{ $reason }}</p>
-      <p><strong>Troubleshoot:</strong> {{ $troubleshoot }}</p>
+      <p><strong>Identified Reason:</strong> {{ $reason }}</p>
+      <p><strong>Troubleshooting Performed:</strong> {{ $troubleshoot }}</p>
     </div>
 
-    <p>No further action is needed at this time. We'll continue to monitor the network and keep you informed.</p>
+    <p>Our team is actively monitoring this incident and will provide updates as necessary.</p>
 
-    <p>Warm regards,<br>
+    <p>Kind regards,<br>
     <strong>DICT Network Monitoring System</strong></p>
 
     <div class="footer">

@@ -100,8 +100,8 @@
                 <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                 <h5>{{ $item->name }} Traffic Activities (MBytes)</h5>
                 <div id="lineChartStatisticsTraffic"></div>
-                <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
-                <div id="lineChartStatisticsTraffic2"></div>
+                {{-- <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
+                <div id="lineChartStatisticsTraffic2"></div> --}}
             </div>
 
 
@@ -169,8 +169,9 @@
                 </div>
             </div>
 
-            <div class="p-5">
-                <h5 class="fw-bold">Console</h5>
+            @if (Auth::user()->role != 'dict')
+                <div class="p-5">
+                    <h5 class="fw-bold">Console</h5>
                 <div style="
                     background-color: #1e1e1e;
                     color: #dcdcdc;
@@ -194,7 +195,8 @@
                     line-height: 1.5;
                     color: #6896df;
 "></pre></div>
-            </div>
+                </div>
+            @endif
 
         </div>
     </div>

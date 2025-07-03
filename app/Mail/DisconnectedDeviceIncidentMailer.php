@@ -9,27 +9,29 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class RestorationMailer extends Mailable
+class DisconnectedDeviceIncidentMailer extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
+
     public $name;
-    public $ticket_number;
     public $siteId;
-    public $dateAndTime;
-    public $reason;
-    public $troubleshoot;
-    public function __construct($name, $ticket_number, $siteId, $dateAndTime, $reason, $troubleshoot)
+    public $device_name;
+    public $device_mac;
+    public $device_type;
+    public $status;
+
+    public function __construct($name, $siteId, $device_name, $device_mac, $device_type, $status)
     {
         $this->name = $name;
-        $this->ticket_number = $ticket_number;
         $this->siteId = $siteId;
-        $this->dateAndTime = $dateAndTime;
-        $this->reason = $reason;
-        $this->troubleshoot = $troubleshoot;
+        $this->device_name = $device_name;
+        $this->device_mac = $device_mac;
+        $this->device_type = $device_type;
+        $this->status = $status;
     }
 
     /**
@@ -38,7 +40,7 @@ class RestorationMailer extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Restoration Mailer',
+            subject: 'Disconnected Device Incident Mailer',
         );
     }
 
@@ -48,7 +50,7 @@ class RestorationMailer extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mail.restoration-mailer',
+            view: 'mail.disconnected-device-incident-mailer',
         );
     }
 

@@ -2,13 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Mail\RestorationMailer;
+use App\Mail\ReportIncidentMailer;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
 
-class RestorationMailSender implements ShouldQueue
+class ReportIncidentMailSender implements ShouldQueue
 {
     use Queueable;
 
@@ -16,15 +16,13 @@ class RestorationMailSender implements ShouldQueue
      * Create a new job instance.
      */
     public $name;
-    public $ticket_number;
     public $siteId;
     public $time;
     public $reason;
     public $troubleshoot;
-    public function __construct($name, $ticket_number, $siteId, $time, $reason, $troubleshoot)
+    public function __construct($name, $siteId, $time, $reason, $troubleshoot)
     {
         $this->name = $name;
-        $this->ticket_number = $ticket_number;
         $this->siteId = $siteId;
         $this->time = $time;
         $this->reason = $reason;
@@ -39,9 +37,8 @@ class RestorationMailSender implements ShouldQueue
         $users = User::all();
 
         foreach ($users as $user) {
-            Mail::to($user['email'])->send(new RestorationMailer(
+            Mail::to($user['email'])->send(new ReportIncidentMailer(
                 $this->name,
-                $this->ticket_number,
                 $this->siteId,
                 $this->time,
                 $this->troubleshoot,

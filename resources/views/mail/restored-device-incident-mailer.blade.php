@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Site Restoration Notice</title>
+  <meta charset="UTF-8" />
+  <title>Device Restoration Notice</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -40,20 +40,23 @@
 </head>
 <body>
   <div class="email-container">
-    <h2>✅ Site Restored Successfully</h2>
+    <h2>✅ Device Restored Successfully</h2>
     <p>Hello,</p>
-    <p>We’re happy to inform you that one of your monitored sites has successfully <strong>come back online</strong>.</p>
+    <p>We’re pleased to notify you that one of your monitored devices has successfully <strong>come back online</strong>.</p>
 
     <div class="details">
       <p><strong>Site Name:</strong> {{ $name }}</p>
-      <p><strong>Ticket Number:</strong> {{ $ticket_number }}</p>
+      <p><strong>Device Name:</strong> {{ $deviceName }}</p>
+      <p><strong>Device MAC:</strong> {{ $deviceMac }}</p>
+      <p><strong>Device Type:</strong> {{ $deviceType }}</p>
+      <p><strong>Status:</strong> {{ $status }}</p>
       <p><strong>Site ID:</strong> {{ $siteId }}</p>
-      <p><strong>Restoration Time:</strong> {{ $dateAndTime }}</p>
+      <p><strong>Ticket Number:</strong> {{ $ticket_number }}</p>
       <p><strong>Reason:</strong> {{ $reason }}</p>
       <p><strong>Troubleshoot:</strong> {{ $troubleshoot }}</p>
     </div>
 
-    <p>No further action is needed at this time. We'll continue to monitor the network and keep you informed.</p>
+    <p>Our system will continue to monitor the device and notify you of any further changes.</p>
 
     <p>Warm regards,<br>
     <strong>DICT Network Monitoring System</strong></p>
