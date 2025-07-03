@@ -168,7 +168,7 @@
                                                         <textarea name="troubleshoot" class="form-control" id="" cols="30" rows="10"></textarea>
                                                     </div>
                                                     <div class="form-group">
-                                                        <button type="submit" class="form-control bg-danger text-light">Mark As Restored</button>
+                                                        <button type="submit" class="form-control bg-danger text-light">Submit A Report</button>
                                                     </div>
                                                     @csrf
                                                 </form>

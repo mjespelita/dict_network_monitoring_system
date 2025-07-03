@@ -112,11 +112,11 @@ connection on another system - confirmation
 1. ok - no proportion in the Data distribution
 3. ok - (Site Name) Traffic Activities (MBytes)
 6. ok - permission sa console
+10. ok - disconnected device - woirking
+11. ok - (what if offline in afternoon 5:00PM)?
 
 2. add hidden graph for aps (depende kun pira na ap)
 4. Manual device disconnect
 5. user logging of events
 7. kbps to mbps - reporting
-10. disconnected device - woirking
 
-(what if offline in afternoon 5:00PM)?
