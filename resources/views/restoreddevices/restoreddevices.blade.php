@@ -7,18 +7,18 @@
             <h1>All Restoreddevices</h1>
         </div>
         <div class='col-lg-6 col-md-6 col-sm-12' style='text-align: right;'>
-            <a href='{{ url('trash-restoreddevices') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Restoreddevices::where('isTrash', '1')->count() }}</span></button></a>
-            <a href='{{ route('restoreddevices.create') }}'><button class='btn btn-success'><i class='fas fa-plus'></i> Add Restoreddevices</button></a>
+            {{-- <a href='{{ url('trash-restoreddevices') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Restoreddevices::where('isTrash', '1')->count() }}</span></button></a>
+            <a href='{{ route('restoreddevices.create') }}'><button class='btn btn-success'><i class='fas fa-plus'></i> Add Restoreddevices</button></a> --}}
         </div>
     </div>
-    
+
     <div class='card'>
         <div class='card-body'>
             <div class='row'>
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
                     <div class='row'>
                         <div class='col-4'>
-                            <button type='button' class='btn btn-outline-secondary dropdown-toggle' data-bs-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
+                            {{-- <button type='button' class='btn btn-outline-secondary dropdown-toggle' data-bs-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
                                 Action
                             </button>
                             <div class='dropdown-menu'>
@@ -28,7 +28,7 @@
                                 <a class='dropdown-item bulk-delete' href='#'>
                                     <i class='fa fa-trash'></i> <span class='text-danger'>Delete Permanently</span> <br> <small>(this action cannot be undone)</small>
                                 </a>
-                            </div>
+                            </div> --}}
                         </div>
                         <div class='col-8'>
                             <form action='{{ url('/restoreddevices-paginate') }}' method='get'>
@@ -46,7 +46,7 @@
                 <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
                     <form action='{{ url('/restoreddevices-filter') }}' method='get'>
                         <div class='input-group'>
-                            <input type='date' class='form-control' id='from' name='from' required> 
+                            <input type='date' class='form-control' id='from' name='from' required>
                             <b class='pt-2'>- to -</b>
                             <input type='date' class='form-control' id='to' name='to' required>
                             <div class='input-group-append'>
@@ -73,28 +73,54 @@
                 <table class='table table-striped'>
                     <thead>
                         <tr>
-                            <th scope='col'>
-                            <input type='checkbox' name='' id='' class='checkAll'>
-                            </th>
-                            <th>#</th>
-                            <th>Name</th><th>Device_name</th><th>Device_mac</th><th>Device_type</th><th>Status</th><th>Ticket_number</th><th>Reason</th><th>Troubleshoot</th>
-                            <th>Actions</th>
+                            <th>Status</th>
+                            <th>Name</th>
+                            <th>Device Name</th>
+                            <th>Device Mac</th>
+                            <th>Device Type</th>
+                            <th>Status</th>
+                            <th>Ticket Number</th>
+                            <th>Reason</th>
+                            <th>Troubleshoot</th>
+                            {{-- <th>Actions</th> --}}
                         </tr>
                     </thead>
 
                     <tbody>
                         @forelse($restoreddevices as $item)
                             <tr>
-                                <th scope='row'>
-                                    <input type='checkbox' name='' id='' class='check' data-id='{{ $item->id }}'>
-                                </th>
-                                <td>{{ $item->id }}</td>
-                                <td>{{ $item->name }}</td><td>{{ $item->device_name }}</td><td>{{ $item->device_mac }}</td><td>{{ $item->device_type }}</td><td>{{ $item->status }}</td><td>{{ $item->ticket_number }}</td><td>{{ $item->reason }}</td><td>{{ $item->troubleshoot }}</td>
-                                <td>
+                                <td class="fw-bold text-success">
+                                    <i class="fas fa-wifi text-success"></i> CONNECTED
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->name }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->device_name }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->device_mac }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->device_type }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->status }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->ticket_number }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->reason }}
+                                </td>
+                                <td class="fw-bold text-success">
+                                    {{ $item->troubleshoot }}
+                                </td>
+                                {{-- <td>
                                     <a href='{{ route('restoreddevices.show', $item->id) }}'><i class='fas fa-eye text-success'></i></a>
                                     <a href='{{ route('restoreddevices.edit', $item->id) }}'><i class='fas fa-edit text-info'></i></a>
                                     <a href='{{ route('restoreddevices.delete', $item->id) }}'><i class='fas fa-trash text-danger'></i></a>
-                                </td>
+                                </td> --}}
                             </tr>
                         @empty
                             <tr>
