@@ -100,8 +100,16 @@
                 <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                 <h5>{{ $item->name }} Traffic Activities (MBytes)</h5>
                 <div id="lineChartStatisticsTraffic"></div>
-                {{-- <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
-                <div id="lineChartStatisticsTraffic2"></div> --}}
+                <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
+                <div id="ap1_traffic_activities_statistics"></div>
+
+
+                {{-- <h5>Access Point 2 (AP) Traffic Activities (MBytes)</h5>
+                <div id="ap2_traffic_activities_statistics"></div>
+
+
+                <h5>Access Point 3 (AP) Traffic Activities (MBytes)</h5>
+                <div id="ap3_traffic_activities_statistics"></div> --}}
             </div>
 
 
@@ -262,7 +270,101 @@
                 }
             };
 
-            const chartOptions2 = {
+            const ap1_traffic_activities_statistics_options = {
+                chart: {
+                    type: 'line',
+                    height: 300,
+                    background: '#ffffff',
+                    dropShadow: {
+                        enabled: true,
+                        top: 1,
+                        left: 1,
+                        blur: 3,
+                        opacity: 0.1
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val === 0 ? val : ''; // Optional if you're still showing 0 labels elsewhere
+                    }
+                },
+                stroke: { curve: 'smooth' },
+                colors: ["#00C8A8", "#7A91B5"],
+                series: [
+                    { name: 'Upload', data: [] },
+                    { name: 'Download', data: [] }
+                ],
+                xaxis: {
+                    categories: [],
+                    tickAmount: 10,
+                    labels: {
+                        rotate: 0,
+                        style: { fontSize: '11px' }
+                    }
+                },
+                tooltip: {
+                    x: {
+                        // format: 'dd MMM yyyy hh:mm a'
+                        format: 'dd MMM yyyy'
+                    }
+                },
+                grid: {
+                    // borderColor: '#ddd',
+                    borderColor: '#a6a6a6',
+                    xaxis: { lines: { show: true } },
+                    yaxis: { lines: { show: true } }
+                }
+            };
+
+            const ap2_traffic_activities_statistics_options = {
+                chart: {
+                    type: 'line',
+                    height: 300,
+                    background: '#ffffff',
+                    dropShadow: {
+                        enabled: true,
+                        top: 1,
+                        left: 1,
+                        blur: 3,
+                        opacity: 0.1
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val === 0 ? val : ''; // Optional if you're still showing 0 labels elsewhere
+                    }
+                },
+                stroke: { curve: 'smooth' },
+                colors: ["#00C8A8", "#7A91B5"],
+                series: [
+                    { name: 'Upload', data: [] },
+                    { name: 'Download', data: [] }
+                ],
+                xaxis: {
+                    categories: [],
+                    tickAmount: 10,
+                    labels: {
+                        rotate: 0,
+                        style: { fontSize: '11px' }
+                    }
+                },
+                tooltip: {
+                    x: {
+                        // format: 'dd MMM yyyy hh:mm a'
+                        format: 'dd MMM yyyy'
+                    }
+                },
+                grid: {
+                    // borderColor: '#ddd',
+                    borderColor: '#a6a6a6',
+                    xaxis: { lines: { show: true } },
+                    yaxis: { lines: { show: true } }
+                }
+            };
+
+            const ap3_traffic_activities_statistics_options = {
                 chart: {
                     type: 'line',
                     height: 300,
@@ -310,9 +412,16 @@
             };
 
             const lineChartStatisticsTraffic = new ApexCharts(document.querySelector("#lineChartStatisticsTraffic"), chartOptions1);
-            const lineChartStatisticsTraffic2 = new ApexCharts(document.querySelector("#lineChartStatisticsTraffic2"), chartOptions2);
             lineChartStatisticsTraffic.render();
-            lineChartStatisticsTraffic2.render();
+
+            const ap1_traffic_activities_statistics = new ApexCharts(document.querySelector("#ap1_traffic_activities_statistics"), ap1_traffic_activities_statistics_options);
+            ap1_traffic_activities_statistics.render();
+
+            const ap2_traffic_activities_statistics = new ApexCharts(document.querySelector("#ap2_traffic_activities_statistics"), ap2_traffic_activities_statistics_options);
+            ap2_traffic_activities_statistics.render();
+
+            const ap3_traffic_activities_statistics = new ApexCharts(document.querySelector("#ap3_traffic_activities_statistics"), ap3_traffic_activities_statistics_options);
+            ap3_traffic_activities_statistics.render();
 
 
 
@@ -395,7 +504,7 @@
 
                         // end of switch_traffic_activities =======================================
 
-                        // ap_traffic_activities =======================================
+                        // ap1_traffic_activities =======================================
 
                         const apTraffic = res.result.apTrafficActivities;
 
@@ -445,6 +554,106 @@
 
                         // end of ap_traffic_activities =======================================
 
+                        // ap2_traffic_activities =======================================
+
+                        const ap2Traffic = res.result.apTrafficActivities2;
+
+                        const aggregated_ap2TrafficActivities = {};
+
+                        // Aggregate traffic by hour
+                        ap2Traffic.forEach(item => {
+                            const roundedTime = Math.floor(item.time / 3600) * 3600;
+                            if (!aggregated_ap2TrafficActivities[roundedTime]) {
+                                aggregated_ap2TrafficActivities[roundedTime] = { tx: 0, dx: 0 };
+                            }
+                            aggregated_ap2TrafficActivities[roundedTime].tx += item.txData || 0;
+                            aggregated_ap2TrafficActivities[roundedTime].dx += item.dxData || 0;
+                        });
+
+                        const sortedTimes_ap2TrafficActivities = Object.keys(aggregated_ap2TrafficActivities).sort((a, b) => a - b);
+                        const inbound_ap2TrafficActivities = [];
+                        const outbound_ap2TrafficActivities = [];
+                        const timestamps_ap2TrafficActivities = [];
+
+                        let lastDateStr_ap2TrafficActivities = '';
+
+                        sortedTimes_ap2TrafficActivities.forEach(time => {
+                            const d = new Date(time * 1000);
+                            const dateStr = d.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: '2-digit'
+                            });
+                            const timeStr = d.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+
+                            const label = (dateStr === lastDateStr_ap2TrafficActivities) ? timeStr : `${dateStr} ${timeStr}`;
+                            lastDateStr_ap2TrafficActivities = dateStr;
+
+                            timestamps_ap2TrafficActivities.push(label);
+                            function cleanValue(val) {
+                                return val === 0 ? null : Number(val.toFixed(2));
+                            }
+
+                            inbound_ap2TrafficActivities.push(cleanValue(aggregated_ap2TrafficActivities[time].tx));
+                            outbound_ap2TrafficActivities.push(cleanValue(aggregated_ap2TrafficActivities[time].dx));
+                        });
+
+                        // end of ap_traffic_activities =======================================
+
+                        // ap3_traffic_activities =======================================
+
+                        const ap3Traffic = res.result.apTrafficActivities3;
+
+                        const aggregated_ap3TrafficActivities = {};
+
+                        // Aggregate traffic by hour
+                        ap3Traffic.forEach(item => {
+                            const roundedTime = Math.floor(item.time / 3600) * 3600;
+                            if (!aggregated_ap3TrafficActivities[roundedTime]) {
+                                aggregated_ap3TrafficActivities[roundedTime] = { tx: 0, dx: 0 };
+                            }
+                            aggregated_ap3TrafficActivities[roundedTime].tx += item.txData || 0;
+                            aggregated_ap3TrafficActivities[roundedTime].dx += item.dxData || 0;
+                        });
+
+                        const sortedTimes_ap3TrafficActivities = Object.keys(aggregated_ap3TrafficActivities).sort((a, b) => a - b);
+                        const inbound_ap3TrafficActivities = [];
+                        const outbound_ap3TrafficActivities = [];
+                        const timestamps_ap3TrafficActivities = [];
+
+                        let lastDateStr_ap3TrafficActivities = '';
+
+                        sortedTimes_ap3TrafficActivities.forEach(time => {
+                            const d = new Date(time * 1000);
+                            const dateStr = d.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: '2-digit'
+                            });
+                            const timeStr = d.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+
+                            const label = (dateStr === lastDateStr_ap3TrafficActivities) ? timeStr : `${dateStr} ${timeStr}`;
+                            lastDateStr_ap3TrafficActivities = dateStr;
+
+                            timestamps_ap3TrafficActivities.push(label);
+                            function cleanValue(val) {
+                                return val === 0 ? null : Number(val.toFixed(2));
+                            }
+
+                            inbound_ap3TrafficActivities.push(cleanValue(aggregated_ap3TrafficActivities[time].tx));
+                            outbound_ap3TrafficActivities.push(cleanValue(aggregated_ap3TrafficActivities[time].dx));
+                        });
+
+                        // end of ap_traffic_activities =======================================
+
                         lineChartStatisticsTraffic.updateOptions({
                             series: [
                                 { name: 'Download', data: outbound },
@@ -460,13 +669,43 @@
                             }
                         });
 
-                        lineChartStatisticsTraffic2.updateOptions({
+                        ap1_traffic_activities_statistics.updateOptions({
                             series: [
                                 { name: 'Download', data: outbound_apTrafficActivities },
                                 { name: 'Upload', data: inbound_apTrafficActivities },
                             ],
                             xaxis: {
                                 categories: timestamps_apTrafficActivities,
+                                tickAmount: 10,
+                                labels: {
+                                    rotate: 0,
+                                    style: { fontSize: '11px' }
+                                }
+                            }
+                        });
+
+                        ap2_traffic_activities_statistics.updateOptions({
+                            series: [
+                                { name: 'Download', data: outbound_ap2TrafficActivities },
+                                { name: 'Upload', data: inbound_ap2TrafficActivities },
+                            ],
+                            xaxis: {
+                                categories: timestamps_ap2TrafficActivities,
+                                tickAmount: 10,
+                                labels: {
+                                    rotate: 0,
+                                    style: { fontSize: '11px' }
+                                }
+                            }
+                        });
+
+                        ap3_traffic_activities_statistics.updateOptions({
+                            series: [
+                                { name: 'Download', data: outbound_ap3TrafficActivities },
+                                { name: 'Upload', data: inbound_ap3TrafficActivities },
+                            ],
+                            xaxis: {
+                                categories: timestamps_ap3TrafficActivities,
                                 tickAmount: 10,
                                 labels: {
                                     rotate: 0,
@@ -558,10 +797,11 @@
 
                     $('#trafficDistributionDiv').html(html);
                     console.log(res);
+
+                    // dynamic aps
+
                 }).fail(err => console.log(err));
             }
-
-
 
             function getBandwidthUsageApi(start, end, siteId) {
                 const url = `/get-bandwidth-usage-api/${start}/${end}/${siteId}`;

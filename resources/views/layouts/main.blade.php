@@ -36,14 +36,15 @@
 
             <a href='{{ url('dashboard') }}' class='{{ request()->is('dashboard', 'admin-dashboard') ? 'active' : '' }}'><i class='fas fa-tachometer-alt'></i> Dashboard</a>
             <a href='{{ url('sites') }}' class='{{ request()->is('sites', 'trash-sites', 'create-sites', 'show-sites/*', 'edit-sites/*', 'delete-sites/*', 'sites-search*') ? 'active' : '' }}'><i class='fas fa-house'></i> Sites</a>
-            <a href='{{ url('incidents') }}' class='{{ request()->is('incidents', 'trash-incidents', 'create-incidents', 'show-incidents/*', 'edit-incidents/*', 'delete-incidents/*', 'incidents-search*') ? 'active' : '' }}'><i class='fas fa-exclamation-triangle'></i> Incidents</a>
-            <a href='{{ url('restorations') }}' class='{{ request()->is('restorations', 'trash-restorations', 'create-restorations', 'show-restorations/*', 'edit-restorations/*', 'delete-restorations/*', 'restorations-search*') ? 'active' : '' }}'><i class='fas fa-check'></i> Restorations</a>
+            <a href='{{ url('incidents') }}' class='{{ request()->is('incidents', 'trash-incidents', 'create-incidents', 'show-incidents/*', 'edit-incidents/*', 'delete-incidents/*', 'incidents-search*') ? 'active' : '' }}'><i class='fas fa-exclamation-triangle'></i> Offline Sites</a>
+            <a href='{{ url('restorations') }}' class='{{ request()->is('restorations', 'trash-restorations', 'create-restorations', 'show-restorations/*', 'edit-restorations/*', 'delete-restorations/*', 'restorations-search*') ? 'active' : '' }}'><i class='fas fa-check'></i> Restored Sites</a>
             <a href='{{ url('disconnecteddevices') }}' class='{{ request()->is('disconnecteddevices', 'trash-disconnecteddevices', 'create-disconnecteddevices', 'show-disconnecteddevices/*', 'edit-disconnecteddevices/*', 'delete-disconnecteddevices/*', 'disconnecteddevices-search*') ? 'active' : '' }}'><i class='fas fa-plug'></i> Disconnected Devices</a>
             <a href='{{ url('restoreddevices') }}' class='{{ request()->is('restoreddevices', 'trash-restoreddevices', 'create-restoreddevices', 'show-restoreddevices/*', 'edit-restoreddevices/*', 'delete-restoreddevices/*', 'restoreddevices-search*') ? 'active' : '' }}'><i class='fas fa-check'></i> Restored Devices</a>
             @if (Auth::user()->role === 'admin')
                 <a href='{{ url('useraccounts') }}' class='{{ request()->is('useraccounts', 'trash-useraccounts', 'create-useraccounts', 'show-useraccounts/*', 'edit-useraccounts/*', 'delete-useraccounts/*', 'useraccounts-search*') ? 'active' : '' }}'><i class='fas fa-users'></i> User Accounts</a>
                 <a href='{{ url('auditlogs') }}' class='{{ request()->is('auditlogs', 'create-auditlogs', 'show-auditlogs/*', 'edit-auditlogs/*', 'delete-auditlogs/*', 'auditlogs-search*') ? 'active' : '' }}'><i class="fas fa-clipboard-list"></i> Audit Logs</a>
                 <a href='{{ url('logs') }}' class='{{ request()->is('logs', 'create-logs', 'show-logs/*', 'edit-logs/*', 'delete-logs/*', 'logs-search*') ? 'active' : '' }}'><i class="fas fa-bars"></i> System Logs</a>
+                <a href='{{ url('access-logs') }}' class='{{ request()->is('access-logs', 'create-access-logs', 'show-access-logs/*', 'edit-access-logs/*', 'delete-access-logs/*', 'access-logs-search*') ? 'active' : '' }}'><i class="fas fa-bars"></i> Access Logs</a>
             @endif
 
             @if (Auth::user()->role === 'dict')

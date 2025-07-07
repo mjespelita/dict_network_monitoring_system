@@ -1,3 +1,3 @@
-<a href="/">
-    <img src="{{ url('assets/librify-logo.png') }}" alt="" width="90%">
+<a href="/" >
+    <img style="margin: auto;" src="{{ url('assets/dict-logo.png') }}" alt="" width="10%">
 </a>

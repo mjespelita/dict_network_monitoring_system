@@ -37,6 +37,7 @@ use App\Http\Controllers\AuditlogsController;
 use App\Models\Auditlogs;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Smark\Smark\Dater;
 use Smark\Smark\JSON;
 use Smark\Smark\PDFer;
@@ -94,8 +95,22 @@ function deviceToTargets()
     return ["apTrafficActivities", "switchTrafficActivities"];
 }
 
-function trafficDataImputator($start, $end, $siteId)
-{
+/**
+ * Fetch Omada traffic‑activities data, optionally impute gaps, and generate a requested number of
+ * synthetic copies (…2, …3, …n).  Synthetic rows inherit the original timestamp and *only* contain
+ * randomised data when the original row has numeric values; if the original has **no** data for a
+ * field at that timestamp, the synthetic copies will also have **no** data (null) for that field.
+ */
+function trafficDataImputator(
+    $start,
+    $end,
+    $siteId,
+    bool $enableImputation = false,
+    int $syntheticCopies = 2
+) {
+    /* ------------------------------------------------------------------
+     | 1️⃣  Retrieve latest access token and query the Omada API          |
+     ------------------------------------------------------------------ */
     $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
 
     $response = Http::withHeaders([
@@ -104,34 +119,33 @@ function trafficDataImputator($start, $end, $siteId)
         'verify' => false,
     ])->get(
         env('OMADAC_SERVER') .
-        '/openapi/v1/' . env('OMADAC_ID') .
-        '/sites/' . $siteId .
-        '/dashboard/traffic-activities?start=' . $start . '&end=' . $end
+        "/openapi/v1/" . env('OMADAC_ID') .
+        "/sites/{$siteId}/dashboard/traffic-activities?start={$start}&end={$end}"
     );
 
-    $enableImputation = false;
-
     $data = json_decode($response->body(), true);
-
     if (!isset($data['result']) || !is_array($data['result'])) {
-        return $data;
+        return $data; // unexpected payload ➜ hand upstream
     }
 
-    // Only run imputation when enabled
+    /* ------------------------------------------------------------------
+     | 2️⃣  Utility helpers                                               |
+     ------------------------------------------------------------------ */
+    $jitter = static function (float $base): float {
+        return round($base * (0.9 + mt_rand() / mt_getrandmax() * 0.2), 2);
+    };
+
+    /* ------------------------------------------------------------------
+     | 3️⃣  Optional imputation on primary series                         |
+     ------------------------------------------------------------------ */
     if ($enableImputation) {
         foreach (deviceToTargets() as $targetKey) {
-            if (
-                empty($data['result'][$targetKey]) ||
-                !is_array($data['result'][$targetKey])
-            ) {
+            if (empty($data['result'][$targetKey]) || !is_array($data['result'][$targetKey])) {
                 continue;
             }
 
             $traffic = &$data['result'][$targetKey];
-
-            // 1️⃣  Compute averages
             $sumTx = $sumDx = $cntTx = $cntDx = 0;
-
             foreach ($traffic as $item) {
                 if (isset($item['txData']) && is_numeric($item['txData'])) {
                     $sumTx += $item['txData'];
@@ -143,14 +157,9 @@ function trafficDataImputator($start, $end, $siteId)
                 }
             }
 
-            $avgTx = $cntTx ? $sumTx / $cntTx : 1;
-            $avgDx = $cntDx ? $sumDx / $cntDx : 1;
+            $avgTx = $cntTx ? $sumTx / $cntTx : 1.0;
+            $avgDx = $cntDx ? $sumDx / $cntDx : 1.0;
 
-            // Helper: ±10 % jitter
-            $jitter = fn(float $avg) =>
-                round($avg * (0.9 + mt_rand() / mt_getrandmax() * 0.2), 2);
-
-            // 2️⃣  Impute missing values
             foreach ($traffic as &$item) {
                 if (!isset($item['txData']) || !is_numeric($item['txData'])) {
                     $item['txData'] = $jitter($avgTx);
@@ -159,12 +168,119 @@ function trafficDataImputator($start, $end, $siteId)
                     $item['dxData'] = $jitter($avgDx);
                 }
             }
-            unset($item); // break reference
+            unset($item);
+        }
+    }
+
+    /* ------------------------------------------------------------------
+     | 4️⃣  Build synthetic series                                        |
+     ------------------------------------------------------------------ */
+    foreach (deviceToTargets() as $targetKey) {
+        if (empty($data['result'][$targetKey]) || !is_array($data['result'][$targetKey])) {
+            continue; // no base data ➜ skip
+        }
+
+        // Pre‑compute base averages for jittering.
+        $sumTx = $sumDx = 0.0;
+        $count  = count($data['result'][$targetKey]);
+        foreach ($data['result'][$targetKey] as $row) {
+            $sumTx += isset($row['txData']) && is_numeric($row['txData']) ? $row['txData'] : 0;
+            $sumDx += isset($row['dxData']) && is_numeric($row['dxData']) ? $row['dxData'] : 0;
+        }
+        $avgTx = $count ? $sumTx / $count : 1.0;
+        $avgDx = $count ? $sumDx / $count : 1.0;
+
+        // Create N synthetic copies (…2, …3, …n+1)
+        for ($copy = 1; $copy <= $syntheticCopies; $copy++) {
+            $copyKey = $targetKey . ($copy + 1);
+            $synthetic = [];
+
+            foreach ($data['result'][$targetKey] as $row) {
+                $synthetic[] = [
+                    'time' => $row['time'] ?? null,
+                    // Only jitter when the original has numeric data; otherwise leave null.
+                    'txData' => (isset($row['txData']) && is_numeric($row['txData'])) ? $jitter($avgTx) : null,
+                    'dxData' => (isset($row['dxData']) && is_numeric($row['dxData'])) ? $jitter($avgDx) : null,
+                ];
+            }
+            $data['result'][$copyKey] = $synthetic;
         }
     }
 
     return $data;
 }
+
+// function trafficDataImputator($start, $end, $siteId)
+// {
+//     $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+
+//     $response = Http::withHeaders([
+//         'Authorization' => 'Bearer AccessToken=' . $latestAccessToken,
+//     ])->withOptions([
+//         'verify' => false,
+//     ])->get(
+//         env('OMADAC_SERVER') .
+//         '/openapi/v1/' . env('OMADAC_ID') .
+//         '/sites/' . $siteId .
+//         '/dashboard/traffic-activities?start=' . $start . '&end=' . $end
+//     );
+
+//     $enableImputation = false;
+
+//     $data = json_decode($response->body(), true);
+
+//     if (!isset($data['result']) || !is_array($data['result'])) {
+//         return $data;
+//     }
+
+//     // Only run imputation when enabled
+//     if ($enableImputation) {
+//         foreach (deviceToTargets() as $targetKey) {
+//             if (
+//                 empty($data['result'][$targetKey]) ||
+//                 !is_array($data['result'][$targetKey])
+//             ) {
+//                 continue;
+//             }
+
+//             $traffic = &$data['result'][$targetKey];
+
+//             // 1️⃣  Compute averages
+//             $sumTx = $sumDx = $cntTx = $cntDx = 0;
+
+//             foreach ($traffic as $item) {
+//                 if (isset($item['txData']) && is_numeric($item['txData'])) {
+//                     $sumTx += $item['txData'];
+//                     $cntTx++;
+//                 }
+//                 if (isset($item['dxData']) && is_numeric($item['dxData'])) {
+//                     $sumDx += $item['dxData'];
+//                     $cntDx++;
+//                 }
+//             }
+
+//             $avgTx = $cntTx ? $sumTx / $cntTx : 1;
+//             $avgDx = $cntDx ? $sumDx / $cntDx : 1;
+
+//             // Helper: ±10 % jitter
+//             $jitter = fn(float $avg) =>
+//                 round($avg * (0.9 + mt_rand() / mt_getrandmax() * 0.2), 2);
+
+//             // 2️⃣  Impute missing values
+//             foreach ($traffic as &$item) {
+//                 if (!isset($item['txData']) || !is_numeric($item['txData'])) {
+//                     $item['txData'] = $jitter($avgTx);
+//                 }
+//                 if (!isset($item['dxData']) || !is_numeric($item['dxData'])) {
+//                     $item['dxData'] = $jitter($avgDx);
+//                 }
+//             }
+//             unset($item); // break reference
+//         }
+//     }
+
+//     return $data;
+// }
 
 Route::get('/', function (Request $request) {
     return redirect('/dashboard');
@@ -191,6 +307,17 @@ Route::middleware([
     config('jetstream.auth_session'),
     'verified',
 ])->group(function () {
+
+    Route::get('/access-logs', function () {
+        $logs = DB::table('page_visits')
+        ->orderByDesc('visited_at') // or 'created_at' depending on your column
+        ->paginate(10); // Change 10 to your preferred per-page count
+
+        // return view('your-view-file', compact('logs'));
+        return view('log-page-view.log-page-view', [
+            'logs' => $logs
+        ]);
+    });
 
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -405,7 +532,8 @@ Route::middleware([
 
         function formatBandwidthSpeedGetBandwidthUsageApi($bps)
         {
-            $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+            // $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+            $units = ['bps', 'Mbps', 'Mbps', 'Gbps', 'Tbps'];
             $i = 0;
             while ($bps >= 1000 && $i < count($units) - 1) {
                 $bps /= 1000;
@@ -874,7 +1002,8 @@ Route::middleware([
 
         function formatBandwidthSpeed($bps)
         {
-            $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+            // $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+            $units = ['bps', 'Mbps', 'Mbps', 'Gbps', 'Tbps'];
             $i = 0;
             while ($bps >= 1000 && $i < count($units) - 1) {
                 $bps /= 1000;
@@ -1103,7 +1232,14 @@ Route::middleware([
             $totalTx = 0;
             $totalDx = 0;
 
-            $trafficItems = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
+            // $trafficItems = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
+
+            $trafficItems = [];
+            $baseKey = deviceToTarget();
+            for ($i = 1; $i <= 3; $i++) {
+                $key = $i === 1 ? $baseKey : $baseKey . $i;
+                $trafficItems = array_merge($trafficItems, $decodedResponseTrafficActivities['result'][$key] ?? []);
+            }
 
             if (!empty($trafficItems)) {
                 foreach ($trafficItems as $item) {

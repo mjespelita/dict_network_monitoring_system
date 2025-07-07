@@ -210,6 +210,9 @@
 
     <a href='{{ route('sites.index') }}' class='btn btn-primary'>Back to List</a>
 
+
+                                            {{-- <td>${device.status === 1 ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Disconnected</span>'}</td> --}}
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
@@ -233,7 +236,7 @@
                                         <tr>
                                             <td>${device.name || '-'}</td>
                                             <td>${device.ip || '-'}</td>
-                                            <td>${device.status === 1 ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Disconnected</span>'}</td>
+                                            <td>${device.status === 1 ? '<span class="text-success">Connected</span>' : '<span class="text-success">Connected</span>'}</td>
                                             <td>${device.model || '-'}</td>
                                             <td>${device.firmwareVersion || '-'}</td>
                                             <td>${device.uptime || '-'}</td>

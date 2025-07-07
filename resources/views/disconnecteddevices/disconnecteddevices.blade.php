@@ -4,7 +4,7 @@
 @section('content')
     <div class='row'>
         <div class='col-lg-6 col-md-6 col-sm-12'>
-            <h1>All Disconnecteddevices</h1>
+            <h1>All Disconnected Devices</h1>
         </div>
         <div class='col-lg-6 col-md-6 col-sm-12' style='text-align: right;'>
             <a href='{{ url('trash-disconnecteddevices') }}'><button class='btn btn-danger'><i class='fas fa-trash'></i> Trash <span class='text-warning'>{{ App\Models\Disconnecteddevices::where('isTrash', '1')->count() }}</span></button></a>

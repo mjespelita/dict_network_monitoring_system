@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\LogPageVisit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(
             // $except = ['/add-user']
+        );
+
+        $middleware->web(
+            append: [LogPageVisit::class]
         );
     })
     ->withExceptions(function (Exceptions $exceptions) {

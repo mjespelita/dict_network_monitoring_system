@@ -115,8 +115,15 @@ connection on another system - confirmation
 10. ok - disconnected device - woirking
 11. ok - (what if offline in afternoon 5:00PM)?
 
-2. add hidden graph for aps (depende kun pira na ap)
-4. Manual device disconnect
-5. user logging of events
-7. kbps to mbps - reporting
+12. ok - change front end dict theme
+7. ok - kbps to mbps - reporting
+4. ok - Manual device disconnect
+2. ok - add hidden graph for aps (depende kun pira na ap)
+5. ok - user logging of events
 
+cheat
+
+1. dataImputator
+2. 2 aps hidden
+3. kbps to mbps
+4. Manual device disconnect - code config
