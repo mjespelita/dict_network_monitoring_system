@@ -19,18 +19,19 @@ class SitesController extends Controller {
     {
 
         // Get the latest batch_number
-        $latestBatch = Batches::latest('id')->first();
+        // $latestBatch = Batches::latest('id')->first();
 
-        // Optional: Handle if no batches exist yet
-        if (!$latestBatch) {
-            return view('sites.sites', [
-                'sites' => collect(), // return empty collection
-            ]);
-        }
+        // // Optional: Handle if no batches exist yet
+        // if (!$latestBatch) {
+        //     return view('sites.sites', [
+        //         'sites' => collect(), // return empty collection
+        //     ]);
+        // }
 
         return view('sites.sites', [
             'sites' => Sites::where('isTrash', '0')
-                            ->where('batch_number', $latestBatch->batch_number)
+                            ->orderBy('name', 'asc')
+                            // ->where('batch_number', $latestBatch->batch_number)
                             ->paginate(10)
         ]);
     }
