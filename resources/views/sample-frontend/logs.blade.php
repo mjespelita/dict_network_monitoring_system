@@ -160,9 +160,6 @@
                             renderTablePage(currentPage);
                             renderPagination(logsData.length);
                         } else {
-                            $.get('/generate-new-api-token', function (res) {
-                                window.location.reload();
-                            });
                             $('#logNotificationBody').html(`<tr><td colspan="2" class="text-danger text-center">Failed to load logs.</td></tr>`);
                         }
                     },
@@ -172,13 +169,8 @@
                 });
             }
 
-            // Initial load
-            $.get('/traffic-api-access-token', function () {
-                const siteId = window.location.pathname.split('/').filter(Boolean).pop();
-                loadLogNotifications(siteId);
-            }).fail(function () {
-                console.error("Failed to get access token.");
-            });
+            const siteId = window.location.pathname.split('/').filter(Boolean).pop();
+            loadLogNotifications(siteId);
         });
         </script>
 

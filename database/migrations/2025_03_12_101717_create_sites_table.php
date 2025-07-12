@@ -21,6 +21,7 @@ return new class extends Migration
             $table->integer('type')->nullable();
             $table->string('supportES')->nullable();
             $table->string('supportL2')->nullable();
+            $table->string('batch_number')->nullable();
             $table->boolean('isTrash')->default(0);
             $table->timestamps();
         });

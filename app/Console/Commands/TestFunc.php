@@ -28,20 +28,6 @@ class TestFunc extends Command
      */
     public function handle()
     {
-        $users = User::all();
-
-        foreach ($users as $key => $user) {
-            Mail::to($user['email'])->send(new DisconnectedDeviceIncidentMailer(
-                "Sample Device",
-                "asdasdasd",
-                "asdasdasda",
-                "sdfsdfsdfsdfdsfsd",
-                "sdfsdfsdfds",
-                "asdaas",
-            ));
-        }
-
-
-        $this->info('Mail Send');
+        $this->info('sample');
     }
 }

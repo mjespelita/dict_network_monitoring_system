@@ -1,0 +1,18 @@
+on the database
+/sites
+/auditlogs
+/clients-api/{siteId}
+/client-details-api/{siteId}/{macAddress}
+/devices-api/{siteId}
+/log-notification-api/{siteId}
+/overview-diagram-api/{siteId}
+
+
+not on the database
+/traffic-api/{start}/{end}/{siteId}
+/top-cpu-usage-api/{start}/{end}/{siteId}
+/top-memory-usage-api/{start}/{end}/{siteId}
+/get-bandwidth-usage-api/{start}/{end}/{siteId}
+/get-total-upload-download-api/{start}/{end}/{siteId}
+/get-percentage-availability-api/{start}/{end}/{siteId}
+/get-traffic-distribution/{start}/{end}/{siteId}

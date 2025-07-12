@@ -80,6 +80,47 @@ use App\Models\Restoreddevices;
 
 // end of import
 
+use App\Http\Controllers\DevicesController;
+use App\Models\Devices;
+
+// end of import
+
+use App\Http\Controllers\ClientsController;
+use App\Models\Clients;
+
+// end of import
+
+use App\Http\Controllers\ClientstatsController;
+use App\Models\Clientstats;
+
+// end of import
+
+use App\Http\Controllers\OverviewdiagramsController;
+use App\Models\Overviewdiagrams;
+
+// end of import
+
+use App\Http\Controllers\TopcpuusagesController;
+use App\Models\Topcpuusages;
+
+// end of import
+
+use App\Http\Controllers\ClientdetailsController;
+use App\Models\Clientdetails;
+
+// end of import
+
+use App\Http\Controllers\LognotificationsController;
+use App\Models\Lognotifications;
+
+// end of import
+
+use App\Http\Controllers\BatchesController;
+use App\Models\Batches;
+
+// end of import
+
+
 
 
 
@@ -210,78 +251,6 @@ function trafficDataImputator(
     return $data;
 }
 
-// function trafficDataImputator($start, $end, $siteId)
-// {
-//     $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-//     $response = Http::withHeaders([
-//         'Authorization' => 'Bearer AccessToken=' . $latestAccessToken,
-//     ])->withOptions([
-//         'verify' => false,
-//     ])->get(
-//         env('OMADAC_SERVER') .
-//         '/openapi/v1/' . env('OMADAC_ID') .
-//         '/sites/' . $siteId .
-//         '/dashboard/traffic-activities?start=' . $start . '&end=' . $end
-//     );
-
-//     $enableImputation = false;
-
-//     $data = json_decode($response->body(), true);
-
-//     if (!isset($data['result']) || !is_array($data['result'])) {
-//         return $data;
-//     }
-
-//     // Only run imputation when enabled
-//     if ($enableImputation) {
-//         foreach (deviceToTargets() as $targetKey) {
-//             if (
-//                 empty($data['result'][$targetKey]) ||
-//                 !is_array($data['result'][$targetKey])
-//             ) {
-//                 continue;
-//             }
-
-//             $traffic = &$data['result'][$targetKey];
-
-//             // 1️⃣  Compute averages
-//             $sumTx = $sumDx = $cntTx = $cntDx = 0;
-
-//             foreach ($traffic as $item) {
-//                 if (isset($item['txData']) && is_numeric($item['txData'])) {
-//                     $sumTx += $item['txData'];
-//                     $cntTx++;
-//                 }
-//                 if (isset($item['dxData']) && is_numeric($item['dxData'])) {
-//                     $sumDx += $item['dxData'];
-//                     $cntDx++;
-//                 }
-//             }
-
-//             $avgTx = $cntTx ? $sumTx / $cntTx : 1;
-//             $avgDx = $cntDx ? $sumDx / $cntDx : 1;
-
-//             // Helper: ±10 % jitter
-//             $jitter = fn(float $avg) =>
-//                 round($avg * (0.9 + mt_rand() / mt_getrandmax() * 0.2), 2);
-
-//             // 2️⃣  Impute missing values
-//             foreach ($traffic as &$item) {
-//                 if (!isset($item['txData']) || !is_numeric($item['txData'])) {
-//                     $item['txData'] = $jitter($avgTx);
-//                 }
-//                 if (!isset($item['dxData']) || !is_numeric($item['dxData'])) {
-//                     $item['dxData'] = $jitter($avgDx);
-//                 }
-//             }
-//             unset($item); // break reference
-//         }
-//     }
-
-//     return $data;
-// }
-
 Route::get('/', function (Request $request) {
     return redirect('/dashboard');
 });
@@ -331,29 +300,103 @@ Route::middleware([
         return view('dict-dashboard');
     })->middleware(DICTMiddleware::class);
 
-    Route::get('/proxy', function () {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer AccessToken=AT-77In5x0OvaHrA9I53OG90zcecX9iElHI', // Replace with your API key
-        ])->withOptions([
-            'verify' => false,
-        ])->get('https://10.99.0.187:8043/openapi/v1/msp/950c1327d64a1b53de3882530e979b99/customers?page=1&pageSize=1000');
-
-        return $response->json();
-    });
-
-    Route::get('/database-sync', function () {
-        $response = Logs::whereDate('created_at', Carbon::today())->get();
-        return $response;
-    });
-
     // Access Token
 
     // FROM OMADA API ===============================================================================================================================
 
+    /************************************************************************ */
+    // ON DATABASE
+    /************************************************************************ */
+
+    Route::get('/clients-api/{siteId}', function ($siteId) {
+        $latestBatch = Batches::latest('id')->first();
+
+        return response()->json([
+            'clients' => Clients::where('siteId', $siteId)
+                                ->where('batch_number', $latestBatch?->batch_number)
+                                ->get(),
+            'clientStat' => Clientstats::where('siteId', $siteId)
+                                    ->where('batch_number', $latestBatch?->batch_number)
+                                    ->get(),
+        ]);
+    });
+
+    Route::get('/client-details-api/{siteId}/{macAddress}', function ($siteId, $macAddress) {
+        $latestBatch = Batches::latest('id')->first();
+
+        return response()->json([
+            'errorCode' => 0,
+            'result' => Clientdetails::where('mac', $macAddress)
+                                    ->where('siteId', $siteId)
+                                    ->where('batch_number', $latestBatch?->batch_number)
+                                    ->first(),
+        ]);
+    });
+
+    Route::get('/devices-api/{siteId}', function ($siteId) {
+        $latestBatch = Batches::latest('id')->first();
+
+        return response()->json(
+            Devices::where('siteId', $siteId)
+                ->where('batch_number', $latestBatch?->batch_number)
+                ->get()
+        );
+    });
+
+    Route::get('/log-notification-api/{siteId}', function ($siteId) {
+        $latestBatch = Batches::latest('id')->first();
+
+        return response()->json([
+            'errorCode' => 0,
+            'result' => [
+                'logNotifications' => Lognotifications::where('siteId', $siteId)
+                                                    ->where('batch_number', $latestBatch?->batch_number)
+                                                    ->orderBy('id', 'desc')
+                                                    ->get()
+            ]
+        ]);
+    });
+
+    Route::get('/overview-diagram-api/{siteId}', function ($siteId) {
+        $latestBatch = Batches::latest('id')->first();
+
+        return response()->json(
+            Overviewdiagrams::where('siteId', $siteId)
+                            ->where('batch_number', $latestBatch?->batch_number)
+                            ->get()
+        );
+    });
+
+    /************************************************************************ */
+    // ON REALTIME
+    /************************************************************************ */
+
+    Route::get('/generate-new-api-token', function () {
+        $postRequestForNewApiKey = Http::withHeaders([
+            'Content-Type' => 'application/json',  // Optional, can be inferred from the `json` method
+        ])->withOptions([
+            'verify' => false,
+        ])->post(env('OMADAC_SERVER').'/openapi/authorize/token?grant_type=client_credentials', [
+            'omadacId' => env('OMADAC_ID'),
+            'client_id' => env('CLIENT_ID'),
+            'client_secret' => env('CLIENT_SECRET'),
+        ]);
+
+        // Decode the response body from JSON to an array
+        $responseBody = json_decode($postRequestForNewApiKey->body(), true);  // Decode into an associative array
+
+        Logs::create(['log' => 'A new Access Token has been successfully generated on '.Dater::humanReadableDateWithDayAndTime(date('F j, Y g:i:s'))]);
+
+        return JSON::jsonUnshift('accessTokenStorage/accessTokens.json', $responseBody['result']);
+    });
+
     Route::get('/traffic-api/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
-
         return response()->json(trafficDataImputator($start, $end, $siteId));
+    });
 
+    Route::get('/traffic-api-access-token', function () {
+        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+        return response()->json($latestAccessToken);
     });
 
     Route::get('/top-cpu-usage-api/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
@@ -381,147 +424,6 @@ Route::middleware([
         ])->get(env('OMADAC_SERVER') . '/openapi/v1/' . env('OMADAC_ID') . '/sites/' . $siteId . '/dashboard/top-device-memory-usage?start=' . $start . '&end=' . $end);
 
         return json_decode($response->body(), true);
-    });
-
-    Route::get('/devices-api/{siteId}', function ($siteId) {
-        $client = new \GuzzleHttp\Client();
-        $omadacId = env('OMADAC_ID');
-
-        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-        try {
-            $res = $client->request('GET', env('OMADAC_SERVER') . "/openapi/v1/{$omadacId}/sites/{$siteId}/devices?page=1&pageSize=1000", [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Bearer AccessToken=' . $latestAccessToken, // Use appropriate token source
-                ]
-            ]);
-
-            return response()->json(json_decode($res->getBody(), true));
-        } catch (\Exception $e) {
-            return response()->json([
-                'errorCode' => 1,
-                'message' => 'Failed to fetch device data.',
-                'error' => $e->getMessage()
-            ]);
-        }
-    });
-
-    Route::get('/clients-api/{siteId}', function ($siteId) {
-        $client = new \GuzzleHttp\Client();
-        $omadacId = env('OMADAC_ID');
-        $accessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-        try {
-            $res = $client->request('GET', env('OMADAC_SERVER') . "/openapi/v1/{$omadacId}/sites/{$siteId}/clients?page=1&pageSize=1000", [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Bearer AccessToken=' . $accessToken,
-                ]
-            ]);
-
-            return response()->json(json_decode($res->getBody(), true));
-        } catch (\Exception $e) {
-            return response()->json([
-                'errorCode' => 1,
-                'message' => 'Failed to fetch client data.',
-                'error' => $e->getMessage()
-            ]);
-        }
-    });
-
-    Route::get('/client-details-api/{siteId}/{macAddress}', function ($siteId, $macAddress) {
-        $client = new \GuzzleHttp\Client();
-        $omadacId = env('OMADAC_ID');
-        $accessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-        try {
-            $res = $client->request('GET', env('OMADAC_SERVER') . "/openapi/v1/{$omadacId}/sites/{$siteId}/clients/{$macAddress}", [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Bearer AccessToken=' . $accessToken,
-                ]
-            ]);
-
-            return response()->json(json_decode($res->getBody(), true));
-        } catch (\Exception $e) {
-            return response()->json([
-                'errorCode' => 1,
-                'message' => 'Failed to fetch client detail.',
-                'error' => $e->getMessage()
-            ]);
-        }
-    });
-
-    Route::get('/log-notification-api/{siteId}', function ($siteId) {
-        $client = new \GuzzleHttp\Client();
-        $omadacId = env('OMADAC_ID');
-        $accessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-        try {
-            $res = $client->request('GET', env('OMADAC_SERVER') . "/openapi/v1/{$omadacId}/sites/{$siteId}/site/log-notification", [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Bearer AccessToken=' . $accessToken,
-                ]
-            ]);
-
-            return response()->json(json_decode($res->getBody(), true));
-        } catch (\Exception $e) {
-            Log::error("Log Notification API Error: " . $e->getMessage());
-            return response()->json([
-                'errorCode' => 1,
-                'message' => 'Failed to fetch log notification data.',
-                'error' => $e->getMessage()
-            ]);
-        }
-    });
-
-    Route::get('/overview-diagram-api/{siteId}', function ($siteId) {
-        $client = new \GuzzleHttp\Client();
-        $omadacId = env('OMADAC_ID');
-        $accessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-
-        try {
-            $res = $client->request('GET', env('OMADAC_SERVER') . "/openapi/v1/{$omadacId}/sites/{$siteId}/dashboard/overview-diagram", [
-                'verify' => false,
-                'headers' => [
-                    'Authorization' => 'Bearer AccessToken=' . $accessToken,
-                ]
-            ]);
-
-            return response()->json(json_decode($res->getBody(), true));
-        } catch (\Exception $e) {
-            return response()->json([
-                'errorCode' => 1,
-                'message' => 'Failed to fetch overview diagram.',
-                'error' => $e->getMessage()
-            ]);
-        }
-    });
-
-    Route::get('/generate-new-api-token', function () {
-        $postRequestForNewApiKey = Http::withHeaders([
-            'Content-Type' => 'application/json',  // Optional, can be inferred from the `json` method
-        ])->withOptions([
-            'verify' => false,
-        ])->post(env('OMADAC_SERVER').'/openapi/authorize/token?grant_type=client_credentials', [
-            'omadacId' => env('OMADAC_ID'),
-            'client_id' => env('CLIENT_ID'),
-            'client_secret' => env('CLIENT_SECRET'),
-        ]);
-
-        // Decode the response body from JSON to an array
-        $responseBody = json_decode($postRequestForNewApiKey->body(), true);  // Decode into an associative array
-
-        Logs::create(['log' => 'A new Access Token has been successfully generated on '.Dater::humanReadableDateWithDayAndTime(date('F j, Y g:i:s'))]);
-
-        return JSON::jsonUnshift('accessTokenStorage/accessTokens.json', $responseBody['result']);
-    });
-
-    Route::get('/traffic-api-access-token', function () {
-        $latestAccessToken = JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
-        return response()->json($latestAccessToken);
     });
 
     // chopped data ===========================
@@ -650,81 +552,6 @@ Route::middleware([
     // offline days
 
     Route::get('/get-percentage-availability-api/{start}/{end}/{siteId}', function ($start, $end, $siteId) {
-
-        // $decodedResponseTrafficActivities = trafficDataImputator($start, $end, $siteId);
-
-        // $trafficData = $decodedResponseTrafficActivities['result'][deviceToTarget()] ?? [];
-
-        // // percentage availability ----------------------------------------------------------------------------------------------
-
-        // // // Step 1: Parse timestamps into unique dates with traffic
-        // $trafficData = $decodedResponseTrafficActivities['result'][deviceToTarget()];
-        // $dateMap = [];
-
-        // foreach ($trafficData as $item) {
-        //     if (!empty($item['txData']) || !empty($item['dxData'])) {
-        //         $dateKey = date('Y-m-d', $item['time']); // e.g., "2025-05-08"
-        //         $dateMap[$dateKey] = true;
-        //     }
-        // }
-
-        // $missingDates = [];
-        // $currentMissingRange = [];
-
-        // foreach ($trafficData as $item) {
-        //     $date = (new DateTime('@' . $item['time']))->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d');
-
-        //     if (empty($item['txData']) && empty($item['dxData'])) {
-        //         $currentMissingRange[] = $date;
-        //     } else {
-        //         // Close current missing range if exists
-        //         if (!empty($currentMissingRange)) {
-        //             $missingDates[] = $currentMissingRange;
-        //             $currentMissingRange = [];
-        //         }
-        //     }
-        // }
-
-        // // Handle the final range if the array ends with missing data
-        // if (!empty($currentMissingRange)) {
-        //     $missingDates[] = $currentMissingRange;
-        // }
-
-        // // Format the output into readable ranges
-        // $formattedRanges = [];
-
-        // foreach ($missingDates as $range) {
-        //     $startOfflines = date('M d Y', strtotime($range[0]));
-        //     $endOfflines = date('M d Y', strtotime(end($range)));
-
-        //     if ($startOfflines === $endOfflines) {
-        //         $formattedRanges[] = $startOfflines;
-        //     } else {
-        //         $formattedRanges[] = "$startOfflines - $endOfflines";
-        //     }
-        // }
-
-        // $startDate = Carbon::createFromTimestamp($start);
-        // $endDate = Carbon::createFromTimestamp($end);
-        // $allDates = CarbonPeriod::create($startDate, $endDate);
-
-        // $allDateKeys = [];
-        // foreach ($allDates as $date) {
-        //     $allDateKeys[] = $date->format('Y-m-d');
-        // }
-
-        // // Step 3: Count offline days
-        // $offlineDays = 0;
-        // foreach ($allDateKeys as $date) {
-        //     if (!isset($dateMap[$date])) {
-        //         $offlineDays++;
-        //     }
-        // }
-
-        // // Step 4: Calculate availability percent
-        // $daysInFirstMonth = $startDate->copy()->endOfMonth()->day;
-        // $totalDaysWithData = $daysInFirstMonth - $offlineDays;
-        // $availabilityPercent = round(($totalDaysWithData / $daysInFirstMonth) * 100);
 
         $decodedResponse = trafficDataImputator($start, $end, $siteId);
         $trafficData = $decodedResponse['result'][deviceToTarget()] ?? [];
@@ -2449,5 +2276,668 @@ Route::middleware([
 
     // end...
 
+    Route::get('/devices', [DevicesController::class, 'index'])->name('devices.index');
+    Route::get('/create-devices', [DevicesController::class, 'create'])->name('devices.create');
+    Route::get('/edit-devices/{devicesId}', [DevicesController::class, 'edit'])->name('devices.edit');
+    Route::get('/show-devices/{devicesId}', [DevicesController::class, 'show'])->name('devices.show');
+    Route::get('/delete-devices/{devicesId}', [DevicesController::class, 'delete'])->name('devices.delete');
+    Route::get('/destroy-devices/{devicesId}', [DevicesController::class, 'destroy'])->name('devices.destroy');
+    Route::post('/store-devices', [DevicesController::class, 'store'])->name('devices.store');
+    Route::post('/update-devices/{devicesId}', [DevicesController::class, 'update'])->name('devices.update');
+    Route::post('/devices-delete-all-bulk-data', [DevicesController::class, 'bulkDelete']);
+    Route::post('/devices-move-to-trash-all-bulk-data', [DevicesController::class, 'bulkMoveToTrash']);
+    Route::post('/devices-restore-all-bulk-data', [DevicesController::class, 'bulkRestore']);
+    Route::get('/trash-devices', [DevicesController::class, 'trash']);
+    Route::get('/restore-devices/{devicesId}', [DevicesController::class, 'restore'])->name('devices.restore');
+
+    // Devices Search
+    Route::get('/devices-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $devices = Devices::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('devices.devices', compact('devices', 'search'));
+    });
+
+    // Devices Paginate
+    Route::get('/devices-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the devices based on the 'paginate' value
+        $devices = Devices::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated devices
+        return view('devices.devices', compact('devices'));
+    });
+
+    // Devices Filter
+    Route::get('/devices-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for devices
+        $query = Devices::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $devices = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $devices = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $devices = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all devices without filtering
+            $devices = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with devices and the selected date range
+        return view('devices.devices', compact('devices', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/clients', [ClientsController::class, 'index'])->name('clients.index');
+    Route::get('/create-clients', [ClientsController::class, 'create'])->name('clients.create');
+    Route::get('/edit-clients/{clientsId}', [ClientsController::class, 'edit'])->name('clients.edit');
+    Route::get('/show-clients/{clientsId}', [ClientsController::class, 'show'])->name('clients.show');
+    Route::get('/delete-clients/{clientsId}', [ClientsController::class, 'delete'])->name('clients.delete');
+    Route::get('/destroy-clients/{clientsId}', [ClientsController::class, 'destroy'])->name('clients.destroy');
+    Route::post('/store-clients', [ClientsController::class, 'store'])->name('clients.store');
+    Route::post('/update-clients/{clientsId}', [ClientsController::class, 'update'])->name('clients.update');
+    Route::post('/clients-delete-all-bulk-data', [ClientsController::class, 'bulkDelete']);
+    Route::post('/clients-move-to-trash-all-bulk-data', [ClientsController::class, 'bulkMoveToTrash']);
+    Route::post('/clients-restore-all-bulk-data', [ClientsController::class, 'bulkRestore']);
+    Route::get('/trash-clients', [ClientsController::class, 'trash']);
+    Route::get('/restore-clients/{clientsId}', [ClientsController::class, 'restore'])->name('clients.restore');
+
+    // Clients Search
+    Route::get('/clients-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $clients = Clients::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('clients.clients', compact('clients', 'search'));
+    });
+
+    // Clients Paginate
+    Route::get('/clients-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the clients based on the 'paginate' value
+        $clients = Clients::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated clients
+        return view('clients.clients', compact('clients'));
+    });
+
+    // Clients Filter
+    Route::get('/clients-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for clients
+        $query = Clients::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $clients = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $clients = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $clients = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all clients without filtering
+            $clients = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with clients and the selected date range
+        return view('clients.clients', compact('clients', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/clientstats', [ClientstatsController::class, 'index'])->name('clientstats.index');
+    Route::get('/create-clientstats', [ClientstatsController::class, 'create'])->name('clientstats.create');
+    Route::get('/edit-clientstats/{clientstatsId}', [ClientstatsController::class, 'edit'])->name('clientstats.edit');
+    Route::get('/show-clientstats/{clientstatsId}', [ClientstatsController::class, 'show'])->name('clientstats.show');
+    Route::get('/delete-clientstats/{clientstatsId}', [ClientstatsController::class, 'delete'])->name('clientstats.delete');
+    Route::get('/destroy-clientstats/{clientstatsId}', [ClientstatsController::class, 'destroy'])->name('clientstats.destroy');
+    Route::post('/store-clientstats', [ClientstatsController::class, 'store'])->name('clientstats.store');
+    Route::post('/update-clientstats/{clientstatsId}', [ClientstatsController::class, 'update'])->name('clientstats.update');
+    Route::post('/clientstats-delete-all-bulk-data', [ClientstatsController::class, 'bulkDelete']);
+    Route::post('/clientstats-move-to-trash-all-bulk-data', [ClientstatsController::class, 'bulkMoveToTrash']);
+    Route::post('/clientstats-restore-all-bulk-data', [ClientstatsController::class, 'bulkRestore']);
+    Route::get('/trash-clientstats', [ClientstatsController::class, 'trash']);
+    Route::get('/restore-clientstats/{clientstatsId}', [ClientstatsController::class, 'restore'])->name('clientstats.restore');
+
+    // Clientstats Search
+    Route::get('/clientstats-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $clientstats = Clientstats::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('clientstats.clientstats', compact('clientstats', 'search'));
+    });
+
+    // Clientstats Paginate
+    Route::get('/clientstats-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the clientstats based on the 'paginate' value
+        $clientstats = Clientstats::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated clientstats
+        return view('clientstats.clientstats', compact('clientstats'));
+    });
+
+    // Clientstats Filter
+    Route::get('/clientstats-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for clientstats
+        $query = Clientstats::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $clientstats = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $clientstats = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $clientstats = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all clientstats without filtering
+            $clientstats = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with clientstats and the selected date range
+        return view('clientstats.clientstats', compact('clientstats', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/overviewdiagrams', [OverviewdiagramsController::class, 'index'])->name('overviewdiagrams.index');
+    Route::get('/create-overviewdiagrams', [OverviewdiagramsController::class, 'create'])->name('overviewdiagrams.create');
+    Route::get('/edit-overviewdiagrams/{overviewdiagramsId}', [OverviewdiagramsController::class, 'edit'])->name('overviewdiagrams.edit');
+    Route::get('/show-overviewdiagrams/{overviewdiagramsId}', [OverviewdiagramsController::class, 'show'])->name('overviewdiagrams.show');
+    Route::get('/delete-overviewdiagrams/{overviewdiagramsId}', [OverviewdiagramsController::class, 'delete'])->name('overviewdiagrams.delete');
+    Route::get('/destroy-overviewdiagrams/{overviewdiagramsId}', [OverviewdiagramsController::class, 'destroy'])->name('overviewdiagrams.destroy');
+    Route::post('/store-overviewdiagrams', [OverviewdiagramsController::class, 'store'])->name('overviewdiagrams.store');
+    Route::post('/update-overviewdiagrams/{overviewdiagramsId}', [OverviewdiagramsController::class, 'update'])->name('overviewdiagrams.update');
+    Route::post('/overviewdiagrams-delete-all-bulk-data', [OverviewdiagramsController::class, 'bulkDelete']);
+    Route::post('/overviewdiagrams-move-to-trash-all-bulk-data', [OverviewdiagramsController::class, 'bulkMoveToTrash']);
+    Route::post('/overviewdiagrams-restore-all-bulk-data', [OverviewdiagramsController::class, 'bulkRestore']);
+    Route::get('/trash-overviewdiagrams', [OverviewdiagramsController::class, 'trash']);
+    Route::get('/restore-overviewdiagrams/{overviewdiagramsId}', [OverviewdiagramsController::class, 'restore'])->name('overviewdiagrams.restore');
+
+    // Overviewdiagrams Search
+    Route::get('/overviewdiagrams-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $overviewdiagrams = Overviewdiagrams::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('overviewdiagrams.overviewdiagrams', compact('overviewdiagrams', 'search'));
+    });
+
+    // Overviewdiagrams Paginate
+    Route::get('/overviewdiagrams-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the overviewdiagrams based on the 'paginate' value
+        $overviewdiagrams = Overviewdiagrams::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated overviewdiagrams
+        return view('overviewdiagrams.overviewdiagrams', compact('overviewdiagrams'));
+    });
+
+    // Overviewdiagrams Filter
+    Route::get('/overviewdiagrams-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for overviewdiagrams
+        $query = Overviewdiagrams::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $overviewdiagrams = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $overviewdiagrams = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $overviewdiagrams = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all overviewdiagrams without filtering
+            $overviewdiagrams = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with overviewdiagrams and the selected date range
+        return view('overviewdiagrams.overviewdiagrams', compact('overviewdiagrams', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/topcpuusages', [TopcpuusagesController::class, 'index'])->name('topcpuusages.index');
+    Route::get('/create-topcpuusages', [TopcpuusagesController::class, 'create'])->name('topcpuusages.create');
+    Route::get('/edit-topcpuusages/{topcpuusagesId}', [TopcpuusagesController::class, 'edit'])->name('topcpuusages.edit');
+    Route::get('/show-topcpuusages/{topcpuusagesId}', [TopcpuusagesController::class, 'show'])->name('topcpuusages.show');
+    Route::get('/delete-topcpuusages/{topcpuusagesId}', [TopcpuusagesController::class, 'delete'])->name('topcpuusages.delete');
+    Route::get('/destroy-topcpuusages/{topcpuusagesId}', [TopcpuusagesController::class, 'destroy'])->name('topcpuusages.destroy');
+    Route::post('/store-topcpuusages', [TopcpuusagesController::class, 'store'])->name('topcpuusages.store');
+    Route::post('/update-topcpuusages/{topcpuusagesId}', [TopcpuusagesController::class, 'update'])->name('topcpuusages.update');
+    Route::post('/topcpuusages-delete-all-bulk-data', [TopcpuusagesController::class, 'bulkDelete']);
+    Route::post('/topcpuusages-move-to-trash-all-bulk-data', [TopcpuusagesController::class, 'bulkMoveToTrash']);
+    Route::post('/topcpuusages-restore-all-bulk-data', [TopcpuusagesController::class, 'bulkRestore']);
+    Route::get('/trash-topcpuusages', [TopcpuusagesController::class, 'trash']);
+    Route::get('/restore-topcpuusages/{topcpuusagesId}', [TopcpuusagesController::class, 'restore'])->name('topcpuusages.restore');
+
+    // Topcpuusages Search
+    Route::get('/topcpuusages-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $topcpuusages = Topcpuusages::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('topcpuusages.topcpuusages', compact('topcpuusages', 'search'));
+    });
+
+    // Topcpuusages Paginate
+    Route::get('/topcpuusages-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the topcpuusages based on the 'paginate' value
+        $topcpuusages = Topcpuusages::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated topcpuusages
+        return view('topcpuusages.topcpuusages', compact('topcpuusages'));
+    });
+
+    // Topcpuusages Filter
+    Route::get('/topcpuusages-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for topcpuusages
+        $query = Topcpuusages::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $topcpuusages = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $topcpuusages = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $topcpuusages = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all topcpuusages without filtering
+            $topcpuusages = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with topcpuusages and the selected date range
+        return view('topcpuusages.topcpuusages', compact('topcpuusages', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/clientdetails', [ClientdetailsController::class, 'index'])->name('clientdetails.index');
+    Route::get('/create-clientdetails', [ClientdetailsController::class, 'create'])->name('clientdetails.create');
+    Route::get('/edit-clientdetails/{clientdetailsId}', [ClientdetailsController::class, 'edit'])->name('clientdetails.edit');
+    Route::get('/show-clientdetails/{clientdetailsId}', [ClientdetailsController::class, 'show'])->name('clientdetails.show');
+    Route::get('/delete-clientdetails/{clientdetailsId}', [ClientdetailsController::class, 'delete'])->name('clientdetails.delete');
+    Route::get('/destroy-clientdetails/{clientdetailsId}', [ClientdetailsController::class, 'destroy'])->name('clientdetails.destroy');
+    Route::post('/store-clientdetails', [ClientdetailsController::class, 'store'])->name('clientdetails.store');
+    Route::post('/update-clientdetails/{clientdetailsId}', [ClientdetailsController::class, 'update'])->name('clientdetails.update');
+    Route::post('/clientdetails-delete-all-bulk-data', [ClientdetailsController::class, 'bulkDelete']);
+    Route::post('/clientdetails-move-to-trash-all-bulk-data', [ClientdetailsController::class, 'bulkMoveToTrash']);
+    Route::post('/clientdetails-restore-all-bulk-data', [ClientdetailsController::class, 'bulkRestore']);
+    Route::get('/trash-clientdetails', [ClientdetailsController::class, 'trash']);
+    Route::get('/restore-clientdetails/{clientdetailsId}', [ClientdetailsController::class, 'restore'])->name('clientdetails.restore');
+
+    // Clientdetails Search
+    Route::get('/clientdetails-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $clientdetails = Clientdetails::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('clientdetails.clientdetails', compact('clientdetails', 'search'));
+    });
+
+    // Clientdetails Paginate
+    Route::get('/clientdetails-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the clientdetails based on the 'paginate' value
+        $clientdetails = Clientdetails::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated clientdetails
+        return view('clientdetails.clientdetails', compact('clientdetails'));
+    });
+
+    // Clientdetails Filter
+    Route::get('/clientdetails-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for clientdetails
+        $query = Clientdetails::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $clientdetails = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $clientdetails = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $clientdetails = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all clientdetails without filtering
+            $clientdetails = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with clientdetails and the selected date range
+        return view('clientdetails.clientdetails', compact('clientdetails', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/lognotifications', [LognotificationsController::class, 'index'])->name('lognotifications.index');
+    Route::get('/create-lognotifications', [LognotificationsController::class, 'create'])->name('lognotifications.create');
+    Route::get('/edit-lognotifications/{lognotificationsId}', [LognotificationsController::class, 'edit'])->name('lognotifications.edit');
+    Route::get('/show-lognotifications/{lognotificationsId}', [LognotificationsController::class, 'show'])->name('lognotifications.show');
+    Route::get('/delete-lognotifications/{lognotificationsId}', [LognotificationsController::class, 'delete'])->name('lognotifications.delete');
+    Route::get('/destroy-lognotifications/{lognotificationsId}', [LognotificationsController::class, 'destroy'])->name('lognotifications.destroy');
+    Route::post('/store-lognotifications', [LognotificationsController::class, 'store'])->name('lognotifications.store');
+    Route::post('/update-lognotifications/{lognotificationsId}', [LognotificationsController::class, 'update'])->name('lognotifications.update');
+    Route::post('/lognotifications-delete-all-bulk-data', [LognotificationsController::class, 'bulkDelete']);
+    Route::post('/lognotifications-move-to-trash-all-bulk-data', [LognotificationsController::class, 'bulkMoveToTrash']);
+    Route::post('/lognotifications-restore-all-bulk-data', [LognotificationsController::class, 'bulkRestore']);
+    Route::get('/trash-lognotifications', [LognotificationsController::class, 'trash']);
+    Route::get('/restore-lognotifications/{lognotificationsId}', [LognotificationsController::class, 'restore'])->name('lognotifications.restore');
+
+    // Lognotifications Search
+    Route::get('/lognotifications-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $lognotifications = Lognotifications::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('lognotifications.lognotifications', compact('lognotifications', 'search'));
+    });
+
+    // Lognotifications Paginate
+    Route::get('/lognotifications-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the lognotifications based on the 'paginate' value
+        $lognotifications = Lognotifications::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated lognotifications
+        return view('lognotifications.lognotifications', compact('lognotifications'));
+    });
+
+    // Lognotifications Filter
+    Route::get('/lognotifications-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for lognotifications
+        $query = Lognotifications::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $lognotifications = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $lognotifications = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $lognotifications = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all lognotifications without filtering
+            $lognotifications = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with lognotifications and the selected date range
+        return view('lognotifications.lognotifications', compact('lognotifications', 'from', 'to'));
+    });
+
+    // end...
+
+    Route::get('/batches', [BatchesController::class, 'index'])->name('batches.index');
+    Route::get('/create-batches', [BatchesController::class, 'create'])->name('batches.create');
+    Route::get('/edit-batches/{batchesId}', [BatchesController::class, 'edit'])->name('batches.edit');
+    Route::get('/show-batches/{batchesId}', [BatchesController::class, 'show'])->name('batches.show');
+    Route::get('/delete-batches/{batchesId}', [BatchesController::class, 'delete'])->name('batches.delete');
+    Route::get('/destroy-batches/{batchesId}', [BatchesController::class, 'destroy'])->name('batches.destroy');
+    Route::post('/store-batches', [BatchesController::class, 'store'])->name('batches.store');
+    Route::post('/update-batches/{batchesId}', [BatchesController::class, 'update'])->name('batches.update');
+    Route::post('/batches-delete-all-bulk-data', [BatchesController::class, 'bulkDelete']);
+    Route::post('/batches-move-to-trash-all-bulk-data', [BatchesController::class, 'bulkMoveToTrash']);
+    Route::post('/batches-restore-all-bulk-data', [BatchesController::class, 'bulkRestore']);
+    Route::get('/trash-batches', [BatchesController::class, 'trash']);
+    Route::get('/restore-batches/{batchesId}', [BatchesController::class, 'restore'])->name('batches.restore');
+
+    // Batches Search
+    Route::get('/batches-search', function (Request $request) {
+        $search = $request->get('search');
+
+        // Perform the search logic
+        $batches = Batches::when($search, function ($query) use ($search) {
+            return $query->where('name', 'like', "%$search%");
+        })->paginate(10);
+
+        return view('batches.batches', compact('batches', 'search'));
+    });
+
+    // Batches Paginate
+    Route::get('/batches-paginate', function (Request $request) {
+        // Retrieve the 'paginate' parameter from the URL (e.g., ?paginate=10)
+        $paginate = $request->input('paginate', 10); // Default to 10 if no paginate value is provided
+
+        // Paginate the batches based on the 'paginate' value
+        $batches = Batches::paginate($paginate); // Paginate with the specified number of items per page
+
+        // Return the view with the paginated batches
+        return view('batches.batches', compact('batches'));
+    });
+
+    // Batches Filter
+    Route::get('/batches-filter', function (Request $request) {
+        // Retrieve 'from' and 'to' dates from the URL
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        // Default query for batches
+        $query = Batches::query();
+
+        // Convert dates to Carbon instances for better comparison
+        $fromDate = $from ? Carbon::parse($from) : null;
+        $toDate = $to ? Carbon::parse($to) : null;
+
+        // Check if both 'from' and 'to' dates are provided
+        if ($from && $to) {
+            // If 'from' and 'to' are the same day (today)
+            if ($fromDate->isToday() && $toDate->isToday()) {
+                // Return results from today and include the 'from' date's data
+                $batches = $query->whereDate('created_at', '=', Carbon::today())
+                               ->orderBy('created_at', 'desc')
+                               ->paginate(10);
+            } else {
+                // If 'from' date is greater than 'to' date, order ascending (from 'to' to 'from')
+                if ($fromDate->gt($toDate)) {
+                    $batches = $query->whereBetween('created_at', [$toDate, $fromDate])
+                                   ->orderBy('created_at', 'asc')  // Ascending order
+                                   ->paginate(10);
+                } else {
+                    // Otherwise, order descending (from 'from' to 'to')
+                    $batches = $query->whereBetween('created_at', [$fromDate, $toDate])
+                                   ->orderBy('created_at', 'desc')  // Descending order
+                                   ->paginate(10);
+                }
+            }
+        } else {
+            // If 'from' or 'to' are missing, show all batches without filtering
+            $batches = $query->paginate(10);  // Paginate results
+        }
+
+        // Return the view with batches and the selected date range
+        return view('batches.batches', compact('batches', 'from', 'to'));
+    });
+
+    // end...
 
 });

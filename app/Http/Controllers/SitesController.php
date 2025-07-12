@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Logs, Sites};
+use App\Models\{Batches, Logs, Sites};
 use App\Http\Requests\StoreSitesRequest;
 use App\Http\Requests\UpdateSitesRequest;
 use Illuminate\Http\Request;
@@ -18,10 +18,20 @@ class SitesController extends Controller {
     public function index()
     {
 
-        Artisan::call('sync-from-http');
+        // Get the latest batch_number
+        $latestBatch = Batches::latest('id')->first();
+
+        // Optional: Handle if no batches exist yet
+        if (!$latestBatch) {
+            return view('sites.sites', [
+                'sites' => collect(), // return empty collection
+            ]);
+        }
 
         return view('sites.sites', [
-            'sites' => Sites::where('isTrash', '0')->paginate(10)
+            'sites' => Sites::where('isTrash', '0')
+                            ->where('batch_number', $latestBatch->batch_number)
+                            ->paginate(10)
         ]);
     }
 

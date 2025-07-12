@@ -226,33 +226,30 @@
 
                         console.log(res);
 
-                        if (res.errorCode === 0 && res.result.data.length > 0) {
-                            res.result.data.forEach(device => {
+                        if (res.length > 0) {
+                            res.forEach(device => {
                                 const status = device.status === 1 ?
                                     `<span class="text-success">Connected</span>` :
                                     `<span class="text-danger">Disconnected</span>`;
 
                                     const row = `
                                         <tr>
-                                            <td>${device.name || '-'}</td>
-                                            <td>${device.ip || '-'}</td>
-                                            <td>${device.status === 1 ? '<span class="text-success">Connected</span>' : '<span class="text-success">Connected</span>'}</td>
+                                            <td>${device.device_name || '-'}</td>
+                                            <td>${device.ip_address || '-'}</td>
+                                            <td>${device.status === 1 ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Disconnected</span>'}</td>
                                             <td>${device.model || '-'}</td>
-                                            <td>${device.firmwareVersion || '-'}</td>
+                                            <td>${device.version || '-'}</td>
                                             <td>${device.uptime || '-'}</td>
-                                            <td>${device.cpuUtil != null ? device.cpuUtil + '%' : '-'}</td>
-                                            <td>${device.memUtil != null ? device.memUtil + '%' : '-'}</td>
-                                            <td>${device.publicIp || '-'}</td>
-                                            <td>${device.linkSpeed ? device.linkSpeed + ' Gbps' : '-'}</td>
+                                            <td>${device.cpu != null ? device.cpu + '%' : '-'}</td>
+                                            <td>${device.memory != null ? device.cpu + '%' : '-'}</td>
+                                            <td>${device.public_ip || '-'}</td>
+                                            <td>${device.link_speed ? device.link_speed + ' Gbps' : '-'}</td>
                                             <td>${device.duplex === 1 ? 'Half' : device.duplex === 2 ? 'Full' : '-'}</td>
                                         </tr>
                                     `;
                                 container.append(row);
                             });
                         } else {
-                            $.get('/generate-new-api-token', function (res) {
-                                window.location.reload();
-                            });
                             container.html(`<tr><td colspan="7" class="text-center text-muted">No device data found.</td></tr>`);
                         }
                     },

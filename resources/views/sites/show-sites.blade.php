@@ -132,40 +132,37 @@
 
     <a href='{{ route('sites.index') }}' class='btn btn-primary'>Back to List</a>
 
+    <script src='{{ url('assets/jquery/jquery.min.js') }}'></script>
     <script>
         const siteId = window.location.pathname.split('/').filter(Boolean).pop();
-        fetch(`/overview-diagram-api/${siteId}`)
-            .then(res => res.json())
-            .then(res => {
-                const stat = res.result;
-                const statCards = `
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Clients:</strong> <h1>${stat.totalClientNum}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wired Clients:</strong> <h1>${stat.wiredClientNum}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wireless Clients:</strong> <h1>${stat.wirelessClientNum}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Guest Clients:</strong> <h1>${stat.guestNum}</h1></div></div>
 
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total APs:</strong> <h1>${stat.totalApNum}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Connected APs:</strong> <h1>${stat.connectedApNum}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Disconnected APs:</strong> <h1>${stat.disconnectedApNum}</h1></div></div>
+        $.get(`/overview-diagram-api/${siteId}`, function(stat) {
 
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Switches:</strong> <h1>${stat.totalSwitchNum}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Connected Switches:</strong> <h1>${stat.connectedSwitchNum}</h1></div></div>
+            console.log(stat)
 
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Ports:</strong> <h1>${stat.totalPorts}</h1></div></div>
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Available Ports:</strong> <h1>${stat.availablePorts}</h1></div></div>
+            const statCards = `
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Clients:</strong> <h1>${stat[0].totalClientNum}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wired Clients:</strong> <h1>${stat[0].wiredClientNum}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wireless Clients:</strong> <h1>${stat[0].wirelessClientNum}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Guest Clients:</strong> <h1>${stat[0].guestNum}</h1></div></div>
 
-                    <div class="col-md-3 mb-3"><div class="card p-3"><strong>Power Consumption:</strong> <h1>${stat.powerConsumption} W</h1></div></div>
-                `;
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total APs:</strong> <h1>${stat[0].totalApNum}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Connected APs:</strong> <h1>${stat[0].connectedApNum}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Disconnected APs:</strong> <h1>${stat[0].disconnectedApNum}</h1></div></div>
 
-                const container = document.getElementById("overviewDiagramSummary");
-                container.innerHTML = statCards;
-            })
-            .catch(err => {
-                $.get('/generate-new-api-token', function (res) {
-                    window.location.reload();
-                })
-                console.error("Error loading overview diagram:", err);
-                document.getElementById("overviewDiagramSummary").innerHTML = `<div class="text-danger">Failed to load data.</div>`;
-            });
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Switches:</strong> <h1>${stat[0].totalSwitchNum}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Connected Switches:</strong> <h1>${stat[0].connectedSwitchNum}</h1></div></div>
+
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Ports:</strong> <h1>${stat[0].totalPorts}</h1></div></div>
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Available Ports:</strong> <h1>${stat[0].availablePorts}</h1></div></div>
+
+                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Power Consumption:</strong> <h1>${stat[0].powerConsumption} W</h1></div></div>
+            `;
+
+            $('#overviewDiagramSummary').html(statCards);
+        }).fail(function(err) {
+            console.error("Error loading overview diagram:", err);
+            $('#overviewDiagramSummary').html(`<div class="text-danger">Failed to load data.</div>`);
+        });
     </script>
 @endsection

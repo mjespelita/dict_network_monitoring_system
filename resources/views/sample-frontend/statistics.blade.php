@@ -100,8 +100,8 @@
                 <h6 class="fw-bold">Date Range: <span class="date-range">Today</span></h6>
                 <h5>{{ $item->name }} Traffic Activities (MBytes)</h5>
                 <div id="lineChartStatisticsTraffic"></div>
-                <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
-                <div id="ap1_traffic_activities_statistics"></div>
+                {{-- <h5>Access Point (AP) Traffic Activities (MBytes)</h5>
+                <div id="ap1_traffic_activities_statistics"></div> --}}
 
 
                 {{-- <h5>Access Point 2 (AP) Traffic Activities (MBytes)</h5>

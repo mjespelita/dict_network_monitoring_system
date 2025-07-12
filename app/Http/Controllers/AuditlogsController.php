@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Logs, Auditlogs};
+use App\Models\{Logs, Auditlogs, Batches};
 use App\Http\Requests\StoreAuditlogsRequest;
 use App\Http\Requests\UpdateAuditlogsRequest;
 use Illuminate\Http\Request;
@@ -15,10 +15,19 @@ class AuditlogsController extends Controller {
      */
     public function index()
     {
-        Artisan::call('sync-from-http');
+        // Get the latest batch
+        $latestBatch = Batches::latest('id')->first();
+
+        if (!$latestBatch) {
+            return view('auditlogs.auditlogs', [
+                'auditlogs' => collect(), // return empty collection
+            ]);
+        }
 
         return view('auditlogs.auditlogs', [
-            'auditlogs' => Auditlogs::where('isTrash', '0')->paginate(15)
+            'auditlogs' => Auditlogs::where('isTrash', '0')
+                                    ->where('batch_number', $latestBatch->batch_number)
+                                    ->paginate(15)
         ]);
     }
 

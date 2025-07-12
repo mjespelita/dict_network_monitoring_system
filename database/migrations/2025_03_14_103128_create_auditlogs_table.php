@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('label')->nullable();
             $table->string('oldValue')->nullable();
             $table->string('newValue')->nullable();
+            $table->string('batch_number')->nullable();
             $table->boolean('isTrash')->default(0);
             $table->timestamps();
         });

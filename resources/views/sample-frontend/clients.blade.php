@@ -112,26 +112,26 @@
 
                         console.log(res)
 
-                        if (res.errorCode === 0) {
-                            const data = res.result.data;
-                            if (data.length > 0) {
-                                data.forEach(client => {
+                        if (res.clients.length != 0) {
+                            const data = res;
+                            if (res.clients.length > 0) {
+                                res.clients.forEach(client => {
                                     const row = `
                                         <tr>
                                             <td>
-                                                <b class="text-primary" style="cursor:pointer" data-mac="${client.mac}" class="client-mac-link">${client.mac || '-'}</b>
+                                                <b class="text-primary" style="cursor:pointer" data-mac="${client.mac_address}" class="client-mac-link">${client.mac_address || '-'}</b>
                                             </td>
-                                            <td>${client.name || '-'}</td>
-                                            <td>${client.deviceType || '-'}</td>
-                                            <td>${client.connectDevType || '-'}</td>
-                                            <td>${client.switchName || '-'}</td>
+                                            <td>${client.device_name || '-'}</td>
+                                            <td>${client.device_type || '-'}</td>
+                                            <td>${client.connected_device_type || '-'}</td>
+                                            <td>${client.switch_name || '-'}</td>
                                             <td>${client.port ?? '-'}</td>
-                                            <td>${client.standardPort || '-'}</td>
-                                            <td>${client.networkName || '-'}</td>
+                                            <td>${client.standard_port || '-'}</td>
+                                            <td>${client.network_theme || '-'}</td>
                                             <td>${client.uptime ?? '-'}</td>
-                                            <td>${client.trafficDown ? (client.trafficDown / 1_000_000).toFixed(2) + ' MB' : '-'}</td>
-                                            <td>${client.trafficUp ? (client.trafficUp / 1_000_000).toFixed(2) + ' MB' : '-'}</td>
-                                            <td>${client.active ? '<span class="text-success">Active</span>' : '<span class="text-muted">Inactive</span>'}</td>
+                                            <td>${client.traffic_down ? (client.traffic_down / 1_000_000).toFixed(2) + ' MB' : '-'}</td>
+                                            <td>${client.traffic_up ? (client.traffic_up / 1_000_000).toFixed(2) + ' MB' : '-'}</td>
+                                            <td>${client.status ? '<span class="text-success">Active</span>' : '<span class="text-muted">Inactive</span>'}</td>
                                         </tr>
                                     `;
                                     container.append(row);
@@ -175,22 +175,19 @@
                                 container.html(`<tr><td colspan="12" class="text-center text-muted">No client data found.</td></tr>`);
                             }
 
-                            const stat = res.result.clientStat;
+                            const stat = res.clientStat;
                             const statCards = `
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Clients:</strong> <h1>${stat.total}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wired:</strong> <h1>${stat.wired}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wireless:</strong> <h1>${stat.wireless}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Guests:</strong> <h1>${stat.numGuest}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Users:</strong> <h1>${stat.numUser}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Good Signal:</strong> <h1>${stat.good}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Fair Signal:</strong> <h1>${stat.fair}</h1></div></div>
-                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>No Signal Data:</strong> <h1>${stat.noData}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Total Clients:</strong> <h1>${stat[0].total}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wired:</strong> <h1>${stat[0].wired}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Wireless:</strong> <h1>${stat[0].wireless}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Guests:</strong> <h1>${stat[0].numGuest}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Users:</strong> <h1>${stat[0].numUser}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Good Signal:</strong> <h1>${stat[0].good}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>Fair Signal:</strong> <h1>${stat[0].fair}</h1></div></div>
+                                <div class="col-md-3 mb-3"><div class="card p-3"><strong>No Signal Data:</strong> <h1>${stat[0].noData}</h1></div></div>
                             `;
                             statContainer.append(statCards);
                         } else {
-                            $.get('/generate-new-api-token', function (res) {
-                                window.location.reload();
-                            });
                             container.html(`<tr><td colspan="12" class="text-center text-muted">No client data found.</td></tr>`);
                             statContainer.html(`<div class="col-12 text-danger text-center">Failed to load client stats.</div>`);
                         }

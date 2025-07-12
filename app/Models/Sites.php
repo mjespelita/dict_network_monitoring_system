@@ -17,6 +17,7 @@ class Sites extends Model
         "type",
         "supportES",
         "supportL2",
+        "batch_number",
         "isTrash"
     ];
     use HasFactory;

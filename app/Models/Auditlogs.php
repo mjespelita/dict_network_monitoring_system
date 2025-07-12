@@ -8,6 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Auditlogs extends Model
 {
     /** @use HasFactory<\Database\Factories\AuditlogsFactory> */
-protected $fillable = ["time","operator","resource","ip","auditType","level","result","content","label","oldValue","newValue","isTrash"];
+    protected $fillable = [
+        "time",
+        "operator",
+        "resource",
+        "ip",
+        "auditType",
+        "level",
+        "result",
+        "content",
+        "label",
+        "oldValue",
+        "newValue",
+        "batch_number",
+        "isTrash"
+    ];
     use HasFactory;
 }

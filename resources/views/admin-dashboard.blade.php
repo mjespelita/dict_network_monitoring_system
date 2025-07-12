@@ -38,17 +38,19 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body text-success">
-                    <h5 class="card-title">User Accounts</h5>
-                    <h1>
-                        <i class="fas fa-users"></i> {{ App\Models\User::count() }}
-                    </h1>
-                    <a href="{{ url('/useraccounts') }}"><button class="btn btn-outline-success">View Details</button></a>
+        @if (Auth::user()->role === "admin")
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body text-success">
+                        <h5 class="card-title">User Accounts</h5>
+                        <h1>
+                            <i class="fas fa-users"></i> {{ App\Models\User::count() }}
+                        </h1>
+                        <a href="{{ url('/useraccounts') }}"><button class="btn btn-outline-success">View Details</button></a>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body text-success">
