@@ -13,19 +13,19 @@ return new class extends Migration
     {
         Schema::create('clientdetails', function (Blueprint $table) {
             $table->id();
-            $table->string('mac');
-            $table->string('name');
-            $table->string('deviceType');
-            $table->string('switchName');
-            $table->string('switchMac');
-            $table->string('port');
-            $table->string('standardPort');
-            $table->string('trafficDown');
-            $table->string('trafficUp');
-            $table->string('uptime');
-            $table->string('guest');
-            $table->string('blocked');
-            $table->string('siteId');
+            $table->string('mac')->nullable();
+            $table->string('name')->nullable();
+            $table->string('deviceType')->nullable();
+            $table->string('switchName')->nullable();
+            $table->string('switchMac')->nullable();
+            $table->string('port')->nullable();
+            $table->string('standardPort')->nullable();
+            $table->string('trafficDown')->nullable();
+            $table->string('trafficUp')->nullable();
+            $table->string('uptime')->nullable();
+            $table->string('guest')->nullable();
+            $table->string('blocked')->nullable();
+            $table->string('siteId')->nullable();
             $table->string('batch_number')->nullable();
             $table->boolean('isTrash')->default(0);
             $table->timestamps();

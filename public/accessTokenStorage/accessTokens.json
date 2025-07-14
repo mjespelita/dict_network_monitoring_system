@@ -1,16 +1,15 @@
 [
     {
-<<<<<<< HEAD
-        "accessToken": "AT-6sq7Ck4Vzdp1SfqOFiDDTi3DmU9HF0QY",
+        "accessToken": "AT-kIswdqNuvKpPiq1WT8wJL0u98eAbmFgJ",
         "tokenType": "bearer",
         "expiresIn": 7200,
-        "refreshToken": "RT-opi0ztzmmjRQXKee5TOJZ0pvdHjUcdAR"
-=======
+        "refreshToken": "RT-I6hC0JYnDOFFoy0KfaLTPohysrbCiGST"
+    },
+    {
         "accessToken": "AT-9BUVx2VYKUC2x4VBsh1vXG8pN4Vta8Kg",
         "tokenType": "bearer",
         "expiresIn": 7200,
         "refreshToken": "RT-C6wui7hPpb4usCoU9T76w6qJzc2SqyxQ"
->>>>>>> cc949bf7bc2c44c5d8ec82144a298b661c5cc1b1
     },
     {
         "accessToken": "AT-m1ir0j3KecFdebjfiqEuATaVgrY5bMuI",
