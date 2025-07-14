@@ -456,7 +456,8 @@
 
                         // switch_traffic_activities =======================================
 
-                        const traffic = res.result.switchTrafficActivities;
+                        // const traffic = res.result.switchTrafficActivities;
+                        const traffic = res.result.apTrafficActivities;
 
                         const aggregated = {};
 

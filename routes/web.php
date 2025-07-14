@@ -128,7 +128,7 @@ use App\Models\Batches;
 
 function deviceToTarget()
 {
-    return "switchTrafficActivities";
+    return "apTrafficActivities";
 }
 
 function deviceToTargets()
