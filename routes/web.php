@@ -434,8 +434,8 @@ Route::middleware([
 
         function formatBandwidthSpeedGetBandwidthUsageApi($bps)
         {
-            // $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
-            $units = ['bps', 'Mbps', 'Mbps', 'Gbps', 'Tbps'];
+            $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+            // $units = ['bps', 'Mbps', 'Mbps', 'Gbps', 'Tbps'];
             $i = 0;
             while ($bps >= 1000 && $i < count($units) - 1) {
                 $bps /= 1000;
@@ -829,8 +829,8 @@ Route::middleware([
 
         function formatBandwidthSpeed($bps)
         {
-            // $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
-            $units = ['bps', 'Mbps', 'Mbps', 'Gbps', 'Tbps'];
+            $units = ['bps', 'Kbps', 'Mbps', 'Gbps', 'Tbps'];
+            // $units = ['bps', 'Mbps', 'Mbps', 'Gbps', 'Tbps'];
             $i = 0;
             while ($bps >= 1000 && $i < count($units) - 1) {
                 $bps /= 1000;
