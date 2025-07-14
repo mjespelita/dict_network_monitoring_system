@@ -751,20 +751,20 @@
                     if (res.result?.aps?.length) {
                         html += `<p><i class="fas fa-wifi text-warning"></i> <strong>Access Points:</strong></p><ul>`;
                         res.result.aps.forEach(ap => {
+                            html += `
+                                <li style="padding: 10px; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 8px; background-color: #f9f9f9;">
+                                    <strong style="font-size: 16px; color: #2c3e50;">${ap.name}</strong> —
+                                    <span style="color: #555;"><strong>MAC:</strong> ${ap.mac}</span>,
+                                    <span style="color: #009600;"><b>${ap.traffic} MB</b></span> -
+                                    <span style="color: #17468F;"><b>${ap.trafficProportion}%</b></span>
+                                </li>
+                            `;
                             // html += `
                             //     <li>
                             //         <strong>${ap.name}</strong> —
-                            //         <span class="text-dark">MAC:</span> ${ap.mac},
-                            //         <span class="text-dark">Traffic:</span> ${ap.traffic} MB,
-                            //         <span class="text-dark">Proportion:</span> ${ap.trafficProportion}%
+                            //         <span class="text-dark">MAC:</span> ${ap.mac}
                             //     </li>
                             // `;
-                            html += `
-                                <li>
-                                    <strong>${ap.name}</strong> —
-                                    <span class="text-dark">MAC:</span> ${ap.mac}
-                                </li>
-                            `;
                         });
                         html += `</ul>`;
                     }
