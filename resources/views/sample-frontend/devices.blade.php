@@ -236,7 +236,7 @@
                                         <tr>
                                             <td>${device.device_name || '-'}</td>
                                             <td>${device.ip_address || '-'}</td>
-                                            <td>${device.status === 1 ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Disconnected</span>'}</td>
+                                            <td>${device.status == 1 ? '<span class="text-success">Connected</span>' : '<span class="text-danger">Disconnected</span>'}</td>
                                             <td>${device.model || '-'}</td>
                                             <td>${device.version || '-'}</td>
                                             <td>${device.uptime || '-'}</td>
@@ -244,7 +244,7 @@
                                             <td>${device.memory != null ? device.cpu + '%' : '-'}</td>
                                             <td>${device.public_ip || '-'}</td>
                                             <td>${device.link_speed ? device.link_speed + ' Gbps' : '-'}</td>
-                                            <td>${device.duplex === 1 ? 'Half' : device.duplex === 2 ? 'Full' : '-'}</td>
+                                            <td>${device.duplex == 1 ? 'Half' : device.duplex == 2 ? 'Full' : '-'}</td>
                                         </tr>
                                     `;
                                 container.append(row);
