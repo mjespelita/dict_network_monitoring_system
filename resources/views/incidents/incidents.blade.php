@@ -15,7 +15,7 @@
     <div class='card'>
         <div class='card-body'>
             <div class='row'>
-                <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
+                <div class='mt-2 col-lg-4 col-md-4 col-sm-12'>
                     <div class='row'>
                         <div class='col-4'>
                             {{-- <button type='button' class='btn btn-outline-secondary dropdown-toggle' data-bs-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
@@ -43,7 +43,7 @@
                         </div>
                     </div>
                 </div>
-                <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
+                <div class='mt-2 col-lg-4 col-md-4 col-sm-12'>
                     <form action='{{ url('/incidents-filter') }}' method='get'>
                         <div class='input-group'>
                             <input type='date' class='form-control' id='from' name='from' required>
@@ -56,7 +56,7 @@
                         @csrf
                     </form>
                 </div>
-                <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
+                <div class='mt-2 col-lg-4 col-md-4 col-sm-12'>
                     <!-- Search Form -->
                     <form action='{{ url('/incidents-search') }}' method='GET'>
                         <div class='input-group'>
@@ -95,8 +95,8 @@
                                 <td class="fw-bold text-danger">
                                     <i class="fas fa-ban text-danger"></i> OFFLINE
                                 </td>
-                                <td class="fw-bold text-danger">
-                                    {{ $item->name }}
+                                <td class="fw-bold text-primary">
+                                    <a href="{{ url('show-sites/'.$item->siteId) }}" class="nav-link">{{ $item->name }}</a>
                                 </td>
                                 <td class="fw-bold text-danger">
                                     {{ $item->siteId }}
@@ -120,7 +120,7 @@
                                     <div class="modal fade" id="restoreOffline{{ $item->siteId }}" tabindex="-1" aria-labelledby="offlineSiteModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
+                                            <div class="text-white modal-header bg-danger">
                                                 <h5 class="modal-title" id="offlineSiteModalLabel">🚨 Restore - {{ $item->name }}</h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
@@ -155,7 +155,7 @@
                                     <div class="modal fade" id="reportOffline{{ $item->siteId }}" tabindex="-1" aria-labelledby="offlineSiteModalLabel" aria-hidden="true">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
-                                            <div class="modal-header bg-danger text-white">
+                                            <div class="text-white modal-header bg-danger">
                                                 <h5 class="modal-title" id="offlineSiteModalLabel">🚨 Submit A Report - {{ $item->name }}</h5>
                                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
