@@ -233,17 +233,20 @@ Artisan::command('sync-sites {batchNumber}', function ($batchNumber) {
     if (latestAccessTokenCheckerError() === 0) {
         $querySites(latestAccessToken());
         Logs::create([
-            'log' => 'Sites synced on ' . Dater::humanReadableDateWithDayAndTime(now()),
+            // 'log' => 'Sites synced on ' . Dater::humanReadableDateWithDayAndTime(now()),
+            'log' => 'The database has been synced on ' . Dater::humanReadableDateWithDayAndTime(now()),
         ]);
     } else {
         createNewAPITokenAlgo();
         $querySites(latestAccessToken());
         Logs::create([
-            'log' => 'Sites synced with new token on ' . Dater::humanReadableDateWithDayAndTime(now()),
+            // 'log' => 'Sites synced with new token on ' . Dater::humanReadableDateWithDayAndTime(now()),
+            'log' => 'The database has been synced with new token on ' . Dater::humanReadableDateWithDayAndTime(now()),
         ]);
     }
 
-    $this->info("Sites synced with batch: $batchNumber");
+    // $this->info("Sites synced with batch: $batchNumber");
+    $this->info("The database has been synced with batch: $batchNumber");
 });
 
 
