@@ -11,7 +11,7 @@
 
             <div class="row">
                 <div class="col-sm-12 col-md-6 col-lg-6">
-                    <form id="dateRangeForm" class="row g-3 mb-4">
+                    <form id="dateRangeForm" class="mb-4 row g-3">
                         <div class="col-md-4">
                             <label for="startDate" class="form-label">Start Date</label>
                             <input type="date" id="startDate" class="form-control" required>
@@ -740,14 +740,44 @@
                     let html = '';
 
                     html += `
-                        <div class="card mb-3">
+                        <div class="mb-3 card">
                             <div class="card-header">
                                 <i class="fas fa-tachometer-alt"></i> Traffic Distribution Overview
                             </div>
                             <div class="card-body">
                     `;
 
-                    // List APs
+                    function formatTraffic(value, unit = 'MB') {
+                        const unitMap = {
+                            B: 0,
+                            KB: 1,
+                            MB: 2,
+                            GB: 3,
+                            TB: 4
+                        };
+
+                        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+                        let bytes = parseFloat(value);
+
+                        // Convert to bytes first
+                        if (unitMap.hasOwnProperty(unit.toUpperCase())) {
+                            bytes *= Math.pow(1024, unitMap[unit.toUpperCase()]);
+                        } else {
+                            console.warn('Unknown unit:', unit);
+                            return `${value} ${unit}`; // fallback
+                        }
+
+                        // Convert to best readable format
+                        let i = 0;
+                        while (bytes >= 1024 && i < units.length - 1) {
+                            bytes /= 1024;
+                            i++;
+                        }
+
+                        return `${bytes.toFixed(2)} ${units[i]}`;
+                    }
+
+                                        // Rendering the APs
                     if (res.result?.aps?.length) {
                         html += `<p><i class="fas fa-wifi text-warning"></i> <strong>Access Points:</strong></p><ul>`;
                         res.result.aps.forEach(ap => {
@@ -755,16 +785,10 @@
                                 <li style="padding: 10px; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 8px; background-color: #f9f9f9;">
                                     <strong style="font-size: 16px; color: #2c3e50;">${ap.name}</strong> —
                                     <span style="color: #555;"><strong>MAC:</strong> ${ap.mac}</span>,
-                                    <span style="color: #009600;"><b>${ap.traffic} MB</b></span> -
+                                    <span style="color: #009600;"><b>${formatTraffic(ap.traffic, 'MB')}</b></span> -
                                     <span style="color: #17468F;"><b>${ap.trafficProportion}%</b></span>
                                 </li>
                             `;
-                            // html += `
-                            //     <li>
-                            //         <strong>${ap.name}</strong> —
-                            //         <span class="text-dark">MAC:</span> ${ap.mac}
-                            //     </li>
-                            // `;
                         });
                         html += `</ul>`;
                     }
@@ -809,7 +833,7 @@
                 $.get(url, function (res) {
 
                     $('#uploadAndDownloadAverageSpeedDiv').html(`
-                        <div class="card bg-primary mb-3">
+                        <div class="mb-3 card bg-primary">
                             <div class="card-header">
                                 <i class="fas fa-tachometer-alt"></i> Average Bandwidth Speed
                             </div>
@@ -832,7 +856,7 @@
                 $.get(url, function (res) {
 
                     $('#uploadDownloadTotalDiv').html(`
-                        <div class="card bg-primary mb-3">
+                        <div class="mb-3 card bg-primary">
                             <div class="card-header">
                                 <i class="fas fa-tachometer-alt"></i> Total Download And Upload
                             </div>
