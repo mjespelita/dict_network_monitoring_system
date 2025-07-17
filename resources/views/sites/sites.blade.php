@@ -19,10 +19,10 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="text-start mb-3">
+                            <div class="mb-3 text-start">
                                 <small class="text-info"><i>Note: Please fill out the necessary form fields below to proceed with exporting the report.</i></small>
                             </div>
-                            <form action="{{ url('/export-general-data-into-pdf') }}" method="GET" class="row g-3 mb-4">
+                            <form action="{{ url('/export-general-data-into-pdf') }}" method="GET" class="mb-4 row g-3">
                                 <h4 class="text-start">Site Selection</h4>
                                 <div class="col-md-12">
                                     <label for="startDate" class="form-label text-start w-100">Select A Site</label>
@@ -73,7 +73,7 @@
                                 <h4 class="text-start">Signatories</h4>
                                 <div id="peopleContainer" class="row g-3"></div>
 
-                                <button type="button" class="btn btn-sm btn-secondary mt-3" onclick="addPerson()">+ Add Person</button>
+                                <button type="button" class="mt-3 btn btn-sm btn-secondary" onclick="addPerson()">+ Add Person</button>
                                 @csrf
                                 <div class="col-md-2 align-self-end">
                                     <button type="submit" class="btn btn-primary">Export</button>
@@ -180,7 +180,7 @@
     <div class='card'>
         <div class='card-body'>
             <div class='row'>
-                <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
+                <div class='mt-2 col-lg-4 col-md-4 col-sm-12'>
                     <div class='row'>
                         <div class='col-4'>
                             <button type='button' class='btn btn-outline-secondary dropdown-toggle' data-bs-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>
@@ -208,7 +208,7 @@
                         </div>
                     </div>
                 </div>
-                <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
+                <div class='mt-2 col-lg-4 col-md-4 col-sm-12'>
                     <form action='{{ url('/sites-filter') }}' method='get'>
                         <div class='input-group'>
                             <input type='date' class='form-control' id='from' name='from' required>
@@ -221,7 +221,7 @@
                         @csrf
                     </form>
                 </div>
-                <div class='col-lg-4 col-md-4 col-sm-12 mt-2'>
+                <div class='mt-2 col-lg-4 col-md-4 col-sm-12'>
                     <!-- Search Form -->
                     <form action='{{ url('/sites-search') }}' method='GET'>
                         <div class='input-group'>
@@ -234,7 +234,7 @@
                 </div>
             </div>
 
-            <div class='table-responsive mt-5'>
+            <div class='mt-5 table-responsive'>
                 <table class='table table-striped table-bordered'>
                     <thead>
                         <tr>

@@ -154,42 +154,79 @@ function incidentMailerSender()
     $endUnix = $now->getTimestamp();          // current timestamp
 
     // to get all site id
+    // foreach (Sites::all() as $key => $site) {
+
+    //     $switchTrafficActivities = json_decode(getTrafficData($site['siteId'], $startUnix, $endUnix)->body(), true)['result']['switchTrafficActivities'];
+
+    //     $trafficData[] = [
+    //         'name'      => $site['name'],
+    //         'siteId'    => $site['siteId'],
+    //         'main_data' => $switchTrafficActivities,
+    //     ];
+    // }
+
+    // $FINAL_LIST_OF_OFFLINE_SITES = [];
+
+    // foreach ($trafficData as $site) {
+    //     $latestEntry = null;
+
+    //     foreach ($site['main_data'] as $entry) {
+    //         if (
+    //             isset($entry['txData'], $entry['dxData'], $entry['time']) &&
+    //             $entry['txData'] === 0.0 &&
+    //             $entry['dxData'] === 0.0
+    //         ) {
+    //             // Compare times
+    //             if (!$latestEntry || $entry['time'] > $latestEntry['time']) {
+    //                 $latestEntry = $entry;
+    //             }
+    //         }
+    //     }
+
+    //     if ($latestEntry) {
+    //         $FINAL_LIST_OF_OFFLINE_SITES[] = [
+    //             'name'      => $site['name'],
+    //             'siteId'    => $site['siteId'],
+    //             'time'      => (new DateTime("@{$latestEntry['time']}"))
+    //                 ->setTimezone(new DateTimeZone('Asia/Manila'))
+    //                 ->format('F j, Y \a\t g:i A'),
+    //         ];
+    //     }
+    // }
+
+    // to get all site id
     foreach (Sites::all() as $key => $site) {
 
-        $switchTrafficActivities = json_decode(getTrafficData($site['siteId'], $startUnix, $endUnix)->body(), true)['result']['switchTrafficActivities'];
+        $apTrafficActivities = json_decode(getTrafficData($site['siteId'], $startUnix, $endUnix)->body(), true)['result']['apTrafficActivities'];
 
         $trafficData[] = [
             'name'      => $site['name'],
             'siteId'    => $site['siteId'],
-            'main_data' => $switchTrafficActivities,
+            'main_data' => $apTrafficActivities,
         ];
     }
 
     $FINAL_LIST_OF_OFFLINE_SITES = [];
 
     foreach ($trafficData as $site) {
-        $latestEntry = null;
 
-        foreach ($site['main_data'] as $entry) {
-            if (
-                isset($entry['txData'], $entry['dxData'], $entry['time']) &&
-                $entry['txData'] === 0.0 &&
-                $entry['dxData'] === 0.0
-            ) {
-                // Compare times
-                if (!$latestEntry || $entry['time'] > $latestEntry['time']) {
-                    $latestEntry = $entry;
-                }
-            }
+        $countOfTime = count($site['main_data']) - 1;
+        $status = 0;
+
+        if(isset($site['main_data'][$countOfTime]['txData']) || isset($site['main_data'][$countOfTime]['dxData'])) {
+            $status = 1;
         }
 
-        if ($latestEntry) {
+        if ($status === 0) {
             $FINAL_LIST_OF_OFFLINE_SITES[] = [
-                'name'      => $site['name'],
-                'siteId'    => $site['siteId'],
-                'time'      => (new DateTime("@{$latestEntry['time']}"))
-                    ->setTimezone(new DateTimeZone('Asia/Manila'))
-                    ->format('F j, Y \a\t g:i A'),
+                'name' => $site['name'],
+                'siteId' => $site['siteId'],
+                'lastData' => $site['main_data'][$countOfTime],
+                'status' => $status,
+                'time' => (new DateTime("@{$site['main_data'][$countOfTime]['time']}"))
+                        ->setTimezone(new DateTimeZone('Asia/Manila'))
+                        ->format('F j, Y \a\t g:i A')
+
             ];
         }
     }

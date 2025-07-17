@@ -121,10 +121,27 @@ use App\Models\Batches;
 // end of import
 
 
+function latestAccessTokenForStatusDetectionInDashboard()
+{
+    return JSON::jsonRead('accessTokenStorage/accessTokens.json')[0]['accessToken'];
+}
 
 
+function getTrafficDataForStatusDetectionInDashboard($siteId, $start, $end)
+{
+    $response = Http::withHeaders([
+        'Authorization' => 'Bearer AccessToken=' . latestAccessTokenForStatusDetectionInDashboard(),
+    ])->withOptions([
+        'verify'        => false,
+    ])->get(
+        env('OMADAC_SERVER') .
+        '/openapi/v1/' . env('OMADAC_ID') .
+        '/sites/' . $siteId .
+        '/dashboard/traffic-activities?start=' . $start . '&end=' . $end
+    );
 
-
+    return $response;
+}
 
 function deviceToTarget()
 {
@@ -293,7 +310,55 @@ Route::middleware([
     })->name('dashboard')->middleware(AuthMiddleware::class);
 
     Route::get('/admin-dashboard', function () {
-        return view('admin-dashboard');
+
+        $trafficData = [];
+
+        $timezone = new DateTimeZone('Asia/Manila');
+
+        $now = new DateTime('now', $timezone); // current date and time in Manila
+        $todayStart = new DateTime($now->format('Y-m-d') . ' 00:00:00', $timezone);
+
+        $startUnix = $todayStart->getTimestamp(); // midnight timestamp
+        $endUnix = $now->getTimestamp();          // current timestamp
+
+        // to get all site id
+        foreach (Sites::all() as $key => $site) {
+
+            $apTrafficActivities = json_decode(getTrafficDataForStatusDetectionInDashboard($site['siteId'], $startUnix, $endUnix)->body(), true)['result']['apTrafficActivities'];
+
+            $trafficData[] = [
+                'name'      => $site['name'],
+                'siteId'    => $site['siteId'],
+                'main_data' => $apTrafficActivities,
+            ];
+        }
+
+        $FINAL_LIST_OF_OFFLINE_SITES = [];
+
+        foreach ($trafficData as $site) {
+
+            $countOfTime = count($site['main_data']) - 1;
+            $status = 0;
+
+            if(isset($site['main_data'][$countOfTime]['txData']) || isset($site['main_data'][$countOfTime]['dxData'])) {
+                $status = 1;
+            }
+
+            $FINAL_LIST_OF_OFFLINE_SITES[] = [
+                'site' => $site['name'],
+                'siteId' => $site['siteId'],
+                'lastData' => $site['main_data'][$countOfTime],
+                'status' => $status,
+                'time' => $site['main_data'][$countOfTime]['time']
+            ];
+        }
+
+        return view('admin-dashboard', [
+            'siteStatuses' => $FINAL_LIST_OF_OFFLINE_SITES
+        ]);
+
+        // return $FINAL_LIST_OF_OFFLINE_SITES;
+        // return $trafficData;
     })->middleware(AdminMiddleware::class);
 
     Route::get('/dict-dashboard', function () {
@@ -736,7 +801,23 @@ Route::middleware([
             $request->troubleshoot,
         );
 
-        return back()->with('success', 'Device is connected!');
+        // connect device on omada
+
+        // $response = Http::withHeaders([
+        //     'Authorization' => 'Bearer AccessToken=' . latestAccessTokenForStatusDetectionInDashboard(),
+        // ])->withOptions([
+        //     'verify' => false,
+        // ])->post(
+        //     env('OMADAC_SERVER') . '/openapi/v1/' . env('OMADAC_ID') . '/sites/' . $siteId . '/devices/' . $deviceMac . '/start-adopt',
+        //     [
+        //         'username' => '',
+        //         'password' => '',
+        //     ]
+        // );
+
+        // return back()->with('success', 'Device is connected!');
+
+        return $response;
     });
 
     Route::post('/report-disconnected-device/{siteId}', function (Request $request, $siteId) {

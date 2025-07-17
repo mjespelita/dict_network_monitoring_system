@@ -111,7 +111,7 @@
                                 <td>
                                     {{-- <a href='{{ route('disconnecteddevices.show', $item->id) }}'><i class='fas fa-eye text-success'></i></a> --}}
                                     <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#reportDisconnectedDevice{{ $item->siteId }}"><i class='fas fa-share text-info'></i> Submit A Report</a>
-                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#restoreDisconnectedDevice{{ $item->siteId }}"><i class='fas fa-recycle text-success'></i> Restore</a>
+                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#restoreDisconnectedDevice{{ $item->siteId }}"><i class='fas fa-recycle text-success'></i> Submit A Restore Report</a>
                                     {{-- <a href='{{ route('disconnecteddevices.delete', $item->id) }}'><i class='fas fa-trash text-danger'></i></a> --}}
 
                                     <!-- Modal -->

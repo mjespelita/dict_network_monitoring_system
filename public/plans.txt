@@ -127,3 +127,8 @@ cheat
 2. 2 aps hidden
 3. kbps to mbps
 4. Manual device disconnect - code config
+
+// July 16, 2025
+
+1. Click restore and auto connected on the omada.
+2. deletect offline site autimatic
