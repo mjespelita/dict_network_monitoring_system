@@ -815,9 +815,9 @@ Route::middleware([
         //     ]
         // );
 
-        // return back()->with('success', 'Device is connected!');
+        return back()->with('success', 'Device is connected!');
 
-        return $response;
+        // return $response;
     });
 
     Route::post('/report-disconnected-device/{siteId}', function (Request $request, $siteId) {

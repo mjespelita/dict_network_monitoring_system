@@ -113,7 +113,7 @@
                                 <td>
                                     {{-- <a href='{{ route('incidents.show', $item->id) }}'><i class='fas fa-eye text-success'></i></a> --}}
                                     <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#reportOffline{{ $item->siteId }}"><i class='fas fa-share text-info'></i> Submit A Report</a>
-                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#restoreOffline{{ $item->siteId }}"><i class='fas fa-recycle text-success'></i> Restore</a>
+                                    <a class="nav-link" style="cursor: pointer" data-bs-toggle="modal" data-bs-target="#restoreOffline{{ $item->siteId }}"><i class='fas fa-recycle text-success'></i> Submit A Restore Report</a>
                                     {{-- <a href='{{ route('incidents.delete', $item->id) }}'><i class='fas fa-trash text-danger'></i></a> --}}
 
                                     <!-- Modal -->
